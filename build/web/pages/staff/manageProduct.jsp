@@ -28,11 +28,13 @@
                     <input type="text" name="keyword" placeholder="Search product name..."
                            class="border border-gray-300 rounded-lg px-4 py-2 w-64 focus:ring-2 focus:ring-blue-500 outline-none">
 
-                    <select name="status" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
-                        <option value="">All Categories</option>
-                        <option value="TABLET">Tablets</option>
-                        <option value="SYRUP">Syrups</option>
-                        <option value="EQUIPMENT">Medical Equipment</option>
+                    <select name="category" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+                        <option value="SNACKS">Snacks</option>
+                        <option value="DRINKS">Drinks</option>
+                        <option value="INSTANT_FOOD">Instant Food</option>
+                        <option value="DAIRY">Dairy</option>
+                        <option value="FROZEN">Frozen Food</option>
+                        <option value="HOUSEHOLD">Household Items</option>
                     </select>
 
                     <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">

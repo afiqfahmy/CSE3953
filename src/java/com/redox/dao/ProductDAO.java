@@ -50,6 +50,50 @@ public class ProductDAO {
         return products;
     }
 
+    public List<Product> searchProducts(String keyword, String category) throws SQLException {
+
+        List<Product> list = new ArrayList<>();
+
+        String sql = "SELECT * FROM product WHERE 1=1";
+
+        if (keyword != null && !keyword.isEmpty()) {
+            sql += " AND productName LIKE ?";
+        }
+
+        if (category != null && !category.isEmpty()) {
+            sql += " AND category = ?";
+        }
+
+        Connection conn = DBConnection.getConnection();
+        PreparedStatement ps = conn.prepareStatement(sql);
+
+        int index = 1;
+
+        if (keyword != null && !keyword.isEmpty()) {
+            ps.setString(index++, "%" + keyword + "%");
+        }
+
+        if (category != null && !category.isEmpty()) {
+            ps.setString(index++, category);
+        }
+
+        ResultSet rs = ps.executeQuery();
+
+        while (rs.next()) {
+            Product p = new Product(
+                    rs.getInt("productId"),
+                    rs.getString("productName"),
+                    rs.getString("category"),
+                    rs.getDouble("unitPrice"),
+                    rs.getInt("quantity"),
+                    rs.getInt("threshold")
+            );
+            list.add(p);
+        }
+
+        return list;
+    }
+
     // 3. READ: Get Single Product (For the Edit form)
     public Product selectProduct(int id) {
         Product product = null;

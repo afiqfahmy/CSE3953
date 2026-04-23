@@ -86,7 +86,20 @@ public class ProductController extends HttpServlet {
     private void listProducts(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, IOException, ServletException {
 
-        List<Product> listProduct = productDAO.selectAllProducts();
+        String keyword = request.getParameter("keyword");
+        String category = request.getParameter("category");
+
+        List<Product> listProduct;
+
+        if ((keyword != null && !keyword.isEmpty())
+                || (category != null && !category.isEmpty())) {
+
+            listProduct = productDAO.searchProducts(keyword, category);
+
+        } else {
+            listProduct = productDAO.selectAllProducts();
+        }
+
         request.setAttribute("productList", listProduct);
 
         RequestDispatcher dispatcher
