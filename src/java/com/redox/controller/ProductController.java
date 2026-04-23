@@ -29,6 +29,7 @@ public class ProductController extends HttpServlet {
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
         String action = request.getParameter("action");
         if (action == null) {
             action = "list";
@@ -36,49 +37,82 @@ public class ProductController extends HttpServlet {
 
         try {
             switch (action) {
+
+                case "add":   // ✅ NEW (SHOW ADD FORM)
+                    showAddForm(request, response);
+                    break;
+
                 case "insert":
                     insertProduct(request, response);
                     break;
+
                 case "delete":
                     deleteProduct(request, response);
                     break;
+
                 case "edit":
                     showEditForm(request, response);
                     break;
+
                 case "update":
                     updateProduct(request, response);
                     break;
+
                 case "view":
                     viewProduct(request, response);
                     break;
+
                 default:
                     listProducts(request, response);
                     break;
             }
+
         } catch (SQLException ex) {
             throw new ServletException(ex);
         }
     }
 
-    private void listProducts(HttpServletRequest request, HttpServletResponse response)
-            throws SQLException, IOException, ServletException {
-        List<Product> listProduct = productDAO.selectAllProducts();
-        request.setAttribute("productList", listProduct);
-        RequestDispatcher dispatcher = request.getRequestDispatcher("staff/manageProduct.jsp");
+    // ✅ SHOW ADD PRODUCT PAGE
+    private void showAddForm(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        RequestDispatcher dispatcher
+                = request.getRequestDispatcher("/pages/staff/addProduct.jsp");
+
         dispatcher.forward(request, response);
     }
 
+    // ✅ LIST PRODUCTS
+    private void listProducts(HttpServletRequest request, HttpServletResponse response)
+            throws SQLException, IOException, ServletException {
+
+        List<Product> listProduct = productDAO.selectAllProducts();
+        request.setAttribute("productList", listProduct);
+
+        RequestDispatcher dispatcher
+                = request.getRequestDispatcher("/pages/staff/manageProduct.jsp");
+
+        dispatcher.forward(request, response);
+    }
+
+    // ✅ SHOW EDIT FORM
     private void showEditForm(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
+
         int id = Integer.parseInt(request.getParameter("id"));
         Product existingProduct = productDAO.selectProduct(id);
         request.setAttribute("product", existingProduct);
-        RequestDispatcher dispatcher = request.getRequestDispatcher("staff/editProduct.jsp");
+
+        RequestDispatcher dispatcher
+                = request.getRequestDispatcher("/pages/staff/editProduct.jsp");
+
         dispatcher.forward(request, response);
     }
 
+    // ✅ INSERT PRODUCT
     private void insertProduct(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, IOException {
+
         String name = request.getParameter("productName");
         String category = request.getParameter("category");
         double price = Double.parseDouble(request.getParameter("unitPrice"));
@@ -87,11 +121,14 @@ public class ProductController extends HttpServlet {
 
         Product newProduct = new Product(0, name, category, price, quantity, threshold);
         productDAO.insertProduct(newProduct);
-        response.sendRedirect("ProductController?action=list");
+
+        response.sendRedirect(request.getContextPath() + "/ProductController?action=list");
     }
 
+    // ✅ UPDATE PRODUCT
     private void updateProduct(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, IOException {
+
         int id = Integer.parseInt(request.getParameter("productId"));
         String name = request.getParameter("productName");
         String category = request.getParameter("category");
@@ -101,22 +138,31 @@ public class ProductController extends HttpServlet {
 
         Product product = new Product(id, name, category, price, quantity, threshold);
         productDAO.updateProduct(product);
-        response.sendRedirect("ProductController?action=list");
+
+        response.sendRedirect(request.getContextPath() + "/ProductController?action=list");
     }
 
+    // ✅ DELETE PRODUCT
     private void deleteProduct(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, IOException {
+
         int id = Integer.parseInt(request.getParameter("id"));
         productDAO.deleteProduct(id);
-        response.sendRedirect("ProductController?action=list");
+
+        response.sendRedirect(request.getContextPath() + "/ProductController?action=list");
     }
 
+    // ✅ VIEW PRODUCT DETAILS
     private void viewProduct(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
+
         int id = Integer.parseInt(request.getParameter("id"));
         Product product = productDAO.selectProduct(id);
         request.setAttribute("product", product);
-        RequestDispatcher dispatcher = request.getRequestDispatcher("staff/productDetails.jsp");
+
+        RequestDispatcher dispatcher
+                = request.getRequestDispatcher("/pages/staff/productDetails.jsp");
+
         dispatcher.forward(request, response);
     }
 }

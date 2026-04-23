@@ -19,8 +19,8 @@
                         <h1 class="text-2xl font-bold text-gray-800">Product Management</h1>
                         <p class="text-gray-600">Manage Redox RX Enterprise stock inventory</p>
                     </div>
-                    <a href="addProduct.jsp" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
-                        <span class="material-symbols-outlined text-sm">add</span> Add Product
+                    <a href="${pageContext.request.contextPath}/ProductController?action=add"
+                       class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">                        <span class="material-symbols-outlined text-sm">add</span> Add Product
                     </a>
                 </div>
 
