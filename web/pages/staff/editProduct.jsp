@@ -1,72 +1,109 @@
-<%@ page contentType="text/html; charset=UTF-8" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page contentType="text/html;charset=UTF-8" %>
+
 <!DOCTYPE html>
-<html lang="en">
+<html>
     <head>
-        <title>Staff | Edit Product</title>
-        <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
-        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+        <title>Edit Product | Redox RX</title>
+        <script src="https://cdn.tailwindcss.com"></script>
     </head>
-    <body class="bg-gray-50">
-        <jsp:include page="/partials/sidebar.jsp"><jsp:param name="active" value="product" /></jsp:include>
-            <main class="pl-64">
-            <jsp:include page="/partials/navbar.jsp" />
-            <div class="p-8 mt-16">
-                <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-                    <div class="flex items-center gap-2 mb-6 text-gray-600">
-                        <a href="manageProduct.jsp" class="hover:text-blue-600 transition-colors">Products</a>
-                        <span class="material-symbols-outlined text-sm">chevron_right</span>
-                        <span class="font-bold text-gray-800">Edit Product</span>
+
+    <body class="bg-slate-100">
+
+        <jsp:include page="/partials/sidebar.jsp">
+            <jsp:param name="active" value="product"/>
+        </jsp:include>
+
+        <main class="pl-60 min-h-screen p-8">
+
+            <div class="max-w-3xl mx-auto">
+
+                <a href="${pageContext.request.contextPath}/ProductController?action=list"
+                   class="text-blue-600 font-semibold text-sm">
+                    ← Back to Products
+                </a>
+
+                <h1 class="text-3xl font-bold mt-4">Edit Product</h1>
+                <p class="text-slate-500 mb-6">Update existing product data.</p>
+
+                <form method="POST"
+                      action="${pageContext.request.contextPath}/ProductController"
+                      class="bg-white p-8 rounded-2xl shadow space-y-6">
+
+                    <input type="hidden" name="action" value="update">
+                    <input type="hidden" name="productId" value="${product.productId}">
+
+                    <div>
+                        <label class="font-semibold text-sm">Product Name</label>
+                        <input type="text"
+                               name="productName"
+                               value="${product.productName}"
+                               required
+                               class="w-full border rounded-xl px-4 py-3 mt-2">
                     </div>
 
-                    <form action="${pageContext.request.contextPath}/ProductController" method="POST" class="space-y-4">
-                        <input type="hidden" name="action" value="update">
-                        <input type="hidden" name="productId" value="${product.productId}">
+                    <div>
+                        <label class="font-semibold text-sm">Category</label>
+                        <select name="category"
+                                class="w-full border rounded-xl px-4 py-3 mt-2">
+
+                            <option value="SNACKS" ${product.category == 'SNACKS' ? 'selected' : ''}>Snacks</option>
+                            <option value="DRINKS" ${product.category == 'DRINKS' ? 'selected' : ''}>Drinks</option>
+                            <option value="DAIRY" ${product.category == 'DAIRY' ? 'selected' : ''}>Dairy</option>
+                            <option value="FROZEN" ${product.category == 'FROZEN' ? 'selected' : ''}>Frozen</option>
+
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-4">
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Product Name</label>
-                            <input type="text" name="productName" value="${product.productName}" required 
-                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <label class="font-semibold text-sm">Price</label>
+                            <input type="number"
+                                   step="0.01"
+                                   name="unitPrice"
+                                   value="${product.unitPrice}"
+                                   required
+                                   class="w-full border rounded-xl px-4 py-3 mt-2">
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Category</label>
-                                <select name="category" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                    <option value="TABLET" ${product.category == 'TABLET' ? 'selected' : ''}>Tablets</option>
-                                    <option value="SYRUP" ${product.category == 'SYRUP' ? 'selected' : ''}>Syrups</option>
-                                    <option value="EQUIPMENT" ${product.category == 'EQUIPMENT' ? 'selected' : ''}>Medical Equipment</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Unit Price (RM)</label>
-                                <input type="number" step="0.01" name="unitPrice" value="${product.unitPrice}" required 
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            </div>
+                        <div>
+                            <label class="font-semibold text-sm">Quantity</label>
+                            <input type="number"
+                                   name="quantity"
+                                   value="${product.quantity}"
+                                   required
+                                   class="w-full border rounded-xl px-4 py-3 mt-2">
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Current Stock</label>
-                                <input type="number" name="quantity" value="${product.quantity}" required 
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Low Stock Threshold</label>
-                                <input type="number" name="threshold" value="${product.threshold}" required 
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            </div>
+                        <div>
+                            <label class="font-semibold text-sm">Threshold</label>
+                            <input type="number"
+                                   name="threshold"
+                                   value="${product.threshold}"
+                                   required
+                                   class="w-full border rounded-xl px-4 py-3 mt-2">
                         </div>
 
-                        <div class="pt-6 border-t border-gray-100 flex gap-3">
-                            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
-                                <span class="material-symbols-outlined text-sm">save</span> Update Product
-                            </button>
-                            <a href="manageProduct.jsp" class="bg-gray-100 text-gray-600 px-6 py-2 rounded-lg hover:bg-gray-200 transition-colors">Cancel</a>
-                        </div>
-                    </form>
-                </div>
+                    </div>
+
+                    <div class="flex justify-end gap-3 pt-4">
+
+                        <a href="${pageContext.request.contextPath}/ProductController?action=list"
+                           class="px-5 py-3 bg-slate-200 rounded-xl font-semibold">
+                            Cancel
+                        </a>
+
+                        <button type="submit"
+                                class="px-5 py-3 bg-blue-600 text-white rounded-xl font-semibold">
+                            Update Product
+                        </button>
+
+                    </div>
+
+                </form>
+
             </div>
         </main>
+
     </body>
 </html>

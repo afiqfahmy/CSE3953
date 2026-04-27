@@ -1,75 +1,127 @@
-<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ page contentType="text/html;charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
 <!DOCTYPE html>
-<html lang="en">
+<html>
     <head>
-        <title>Staff | Product Details</title>
-        <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
-        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+        <title>Product Details | Redox RX</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
     </head>
-    <body class="bg-gray-50">
-        <jsp:include page="/partials/sidebar.jsp"><jsp:param name="active" value="product" /></jsp:include>
-            <main class="pl-64">
-            <jsp:include page="/partials/navbar.jsp" />
-            <div class="p-8 mt-16">
-                <div class="grid grid-cols-3 gap-6">
-                    <div class="col-span-1 space-y-6">
-                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                            <h3 class="text-lg font-bold text-gray-800 mb-4 border-bottom pb-2">Product Info</h3>
-                            <div class="space-y-3 text-sm">
-                                <p><span class="text-gray-500 block">Product ID</span> <span class="font-mono font-bold">#${product.productId}</span></p>
-                                <p><span class="text-gray-500 block">Name</span> <span class="font-semibold text-gray-800">${product.productName}</span></p>
-                                <p><span class="text-gray-500 block">Category</span> <span>${product.category}</span></p>
-                                <p><span class="text-gray-500 block">Price</span> <span class="text-blue-600 font-bold">RM ${product.unitPrice}</span></p>
-                            </div>
-                            <div class="mt-6 pt-4 border-t">
-                                <a href="editProduct.jsp?id=${product.productId}" class="text-center block w-full bg-blue-50 text-blue-600 py-2 rounded-lg font-medium hover:bg-blue-100 transition-colors">Edit Item</a>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="col-span-2 space-y-6">
-                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                            <h3 class="text-lg font-bold text-gray-800 mb-4">Stock Overview</h3>
-                            <div class="flex items-center gap-4">
-                                <div class="bg-gray-50 p-4 rounded-lg flex-1 text-center">
-                                    <span class="text-gray-500 text-xs uppercase">Current Quantity</span>
-                                    <div class="text-3xl font-bold ${product.quantity <= product.threshold ? 'text-red-600' : 'text-gray-800'}">
-                                        ${product.quantity}
-                                    </div>
-                                </div>
-                                <div class="bg-gray-50 p-4 rounded-lg flex-1 text-center">
-                                    <span class="text-gray-500 text-xs uppercase">Safety Threshold</span>
-                                    <div class="text-3xl font-bold text-gray-800">${product.threshold}</div>
-                                </div>
-                            </div>
-                        </div>
+    <body class="bg-slate-100">
 
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                            <div class="p-4 border-b bg-gray-50 flex justify-between items-center">
-                                <h3 class="font-bold text-gray-800">Recent Stock Transactions</h3>
-                                <button class="text-blue-600 text-sm font-medium">+ Record Movement</button>
-                            </div>
-                            <table class="w-full text-left text-sm">
-                                <thead class="bg-gray-100 text-gray-500 uppercase text-[10px] tracking-widest">
-                                    <tr>
-                                        <th class="p-3">Date</th>
-                                        <th class="p-3">Type</th>
-                                        <th class="p-3">Quantity</th>
-                                        <th class="p-3">User</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y">
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="p-3 text-gray-400">No logs yet</td>
-                                        <td colspan="3" class="p-3"></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+        <jsp:include page="/partials/sidebar.jsp">
+            <jsp:param name="active" value="product"/>
+        </jsp:include>
+
+        <main class="pl-60 min-h-screen p-8">
+
+            <div class="max-w-4xl mx-auto">
+
+                <div class="mb-6">
+                    <a href="${pageContext.request.contextPath}/ProductController?action=list"
+                       class="text-blue-600 font-semibold text-sm">
+                        ← Back to Products
+                    </a>
+
+                    <h1 class="text-3xl font-bold text-slate-800 mt-4">Product Details</h1>
+                    <p class="text-slate-500">View complete inventory information.</p>
                 </div>
+
+                <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+
+                    <div class="p-8 border-b bg-gradient-to-r from-blue-600 to-blue-800 text-white">
+
+                        <div class="flex justify-between items-start">
+
+                            <div>
+                                <p class="text-blue-100 text-sm">Product Name</p>
+                                <h2 class="text-3xl font-bold mt-1">${product.productName}</h2>
+                                <p class="text-blue-100 mt-2">${product.category}</p>
+                            </div>
+
+                            <div>
+                                <c:choose>
+                                    <c:when test="${product.lowStock}">
+                                        <span class="bg-red-100 text-red-700 px-4 py-2 rounded-full text-sm font-bold">
+                                            Low Stock
+                                        </span>
+                                    </c:when>
+
+                                    <c:otherwise>
+                                        <span class="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-bold">
+                                            In Stock
+                                        </span>
+                                    </c:otherwise>
+                                </c:choose>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="p-8 grid grid-cols-2 gap-6">
+
+                        <div class="bg-slate-50 rounded-2xl p-5">
+                            <p class="text-slate-500 text-sm">Product ID</p>
+                            <h3 class="text-xl font-bold text-slate-800">${product.productId}</h3>
+                        </div>
+
+                        <div class="bg-slate-50 rounded-2xl p-5">
+                            <p class="text-slate-500 text-sm">Category</p>
+                            <h3 class="text-xl font-bold text-slate-800">${product.category}</h3>
+                        </div>
+
+                        <div class="bg-slate-50 rounded-2xl p-5">
+                            <p class="text-slate-500 text-sm">Unit Price</p>
+                            <h3 class="text-xl font-bold text-slate-800">RM ${product.formattedPrice}</h3>
+                        </div>
+
+                        <div class="bg-slate-50 rounded-2xl p-5">
+                            <p class="text-slate-500 text-sm">Current Quantity</p>
+                            <h3 class="text-xl font-bold text-slate-800">${product.quantity} units</h3>
+                        </div>
+
+                        <div class="bg-slate-50 rounded-2xl p-5">
+                            <p class="text-slate-500 text-sm">Low Stock Threshold</p>
+                            <h3 class="text-xl font-bold text-slate-800">${product.threshold} units</h3>
+                        </div>
+
+                        <div class="bg-slate-50 rounded-2xl p-5">
+                            <p class="text-slate-500 text-sm">Stock Status</p>
+                            <h3 class="text-xl font-bold text-slate-800">${product.stockStatus}</h3>
+                        </div>
+
+                    </div>
+
+                    <div class="p-8 border-t flex justify-end gap-3">
+
+                        <a href="${pageContext.request.contextPath}/ProductController?action=edit&id=${product.productId}"
+                           class="px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow">
+                            Edit Product
+                        </a>
+
+                        <form method="POST"
+                              action="${pageContext.request.contextPath}/ProductController">
+
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="id" value="${product.productId}">
+
+                            <button onclick="return confirm('Delete this product?')"
+                                    class="px-5 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold shadow">
+                                Delete Product
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
             </div>
+
         </main>
+
     </body>
 </html>

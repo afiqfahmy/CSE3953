@@ -2,123 +2,113 @@ package com.redox.dao;
 
 import com.redox.model.Product;
 import com.redox.util.DBConnection;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ProductDAO {
 
-    // SQL Queries
-    private static final String INSERT_PRODUCT_SQL = "INSERT INTO products (product_name, category, unit_price, quantity, threshold) VALUES (?, ?, ?, ?, ?);";
-    private static final String SELECT_PRODUCT_BY_ID = "SELECT * FROM products WHERE product_id = ?;";
-    private static final String SELECT_ALL_PRODUCTS = "SELECT * FROM products;";
-    private static final String DELETE_PRODUCT_SQL = "DELETE FROM products WHERE product_id = ?;";
-    private static final String UPDATE_PRODUCT_SQL = "UPDATE products SET product_name = ?, category = ?, unit_price = ?, quantity = ?, threshold = ? WHERE product_id = ?;";
+    private static final String INSERT_PRODUCT_SQL
+            = "INSERT INTO products (product_name, category, unit_price, quantity, threshold) VALUES (?, ?, ?, ?, ?)";
 
-    // 1. CREATE: Add New Product
+    private static final String SELECT_PRODUCT_BY_ID
+            = "SELECT * FROM products WHERE product_id = ?";
+
+    private static final String SELECT_ALL_PRODUCTS
+            = "SELECT * FROM products ORDER BY product_name ASC";
+
+    private static final String UPDATE_PRODUCT_SQL
+            = "UPDATE products SET product_name = ?, category = ?, unit_price = ?, quantity = ?, threshold = ? WHERE product_id = ?";
+
+    private static final String DELETE_PRODUCT_SQL
+            = "DELETE FROM products WHERE product_id = ?";
+
     public void insertProduct(Product product) throws SQLException {
-        try (Connection connection = DBConnection.getConnection(); PreparedStatement preparedStatement = connection.prepareStatement(INSERT_PRODUCT_SQL)) {
-            preparedStatement.setString(1, product.getProductName());
-            preparedStatement.setString(2, product.getCategory());
-            preparedStatement.setDouble(3, product.getUnitPrice());
-            preparedStatement.setInt(4, product.getQuantity());
-            preparedStatement.setInt(5, product.getThreshold());
-            preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        try (Connection connection = DBConnection.getConnection(); PreparedStatement statement = connection.prepareStatement(INSERT_PRODUCT_SQL)) {
+
+            statement.setString(1, product.getProductName());
+            statement.setString(2, product.getCategory());
+            statement.setDouble(3, product.getUnitPrice());
+            statement.setInt(4, product.getQuantity());
+            statement.setInt(5, product.getThreshold());
+
+            statement.executeUpdate();
         }
     }
 
-    // 2. READ: Get All Products (For your main table)
-    public List<Product> selectAllProducts() {
+    public List<Product> selectAllProducts() throws SQLException {
         List<Product> products = new ArrayList<>();
-        try (Connection connection = DBConnection.getConnection(); PreparedStatement preparedStatement = connection.prepareStatement(SELECT_ALL_PRODUCTS)) {
-            ResultSet rs = preparedStatement.executeQuery();
+
+        try (Connection connection = DBConnection.getConnection(); PreparedStatement statement = connection.prepareStatement(SELECT_ALL_PRODUCTS); ResultSet rs = statement.executeQuery()) {
 
             while (rs.next()) {
-                int id = rs.getInt("product_id");
-                String name = rs.getString("product_name");
-                String category = rs.getString("category");
-                double price = rs.getDouble("unit_price");
-                int qty = rs.getInt("quantity");
-                int threshold = rs.getInt("threshold");
-                products.add(new Product(id, name, category, price, qty, threshold));
+                products.add(mapProduct(rs));
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
+
         return products;
     }
 
-    public List<Product> searchProducts(String keyword, String category) throws SQLException {
-
-        List<Product> list = new ArrayList<>();
-
-        String sql = "SELECT * FROM product WHERE 1=1";
-
-        if (keyword != null && !keyword.isEmpty()) {
-            sql += " AND productName LIKE ?";
-        }
-
-        if (category != null && !category.isEmpty()) {
-            sql += " AND category = ?";
-        }
-
-        Connection conn = DBConnection.getConnection();
-        PreparedStatement ps = conn.prepareStatement(sql);
-
-        int index = 1;
-
-        if (keyword != null && !keyword.isEmpty()) {
-            ps.setString(index++, "%" + keyword + "%");
-        }
-
-        if (category != null && !category.isEmpty()) {
-            ps.setString(index++, category);
-        }
-
-        ResultSet rs = ps.executeQuery();
-
-        while (rs.next()) {
-            Product p = new Product(
-                    rs.getInt("productId"),
-                    rs.getString("productName"),
-                    rs.getString("category"),
-                    rs.getDouble("unitPrice"),
-                    rs.getInt("quantity"),
-                    rs.getInt("threshold")
-            );
-            list.add(p);
-        }
-
-        return list;
-    }
-
-    // 3. READ: Get Single Product (For the Edit form)
-    public Product selectProduct(int id) {
+    public Product selectProduct(int productId) throws SQLException {
         Product product = null;
-        try (Connection connection = DBConnection.getConnection(); PreparedStatement preparedStatement = connection.prepareStatement(SELECT_PRODUCT_BY_ID)) {
-            preparedStatement.setInt(1, id);
-            ResultSet rs = preparedStatement.executeQuery();
 
-            if (rs.next()) {
-                String name = rs.getString("product_name");
-                String category = rs.getString("category");
-                double price = rs.getDouble("unit_price");
-                int qty = rs.getInt("quantity");
-                int threshold = rs.getInt("threshold");
-                product = new Product(id, name, category, price, qty, threshold);
+        try (Connection connection = DBConnection.getConnection(); PreparedStatement statement = connection.prepareStatement(SELECT_PRODUCT_BY_ID)) {
+
+            statement.setInt(1, productId);
+
+            try (ResultSet rs = statement.executeQuery()) {
+                if (rs.next()) {
+                    product = mapProduct(rs);
+                }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
+
         return product;
     }
 
-    // 4. UPDATE: Save changes from Edit form
+    public List<Product> searchProducts(String keyword, String category) throws SQLException {
+        List<Product> products = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder("SELECT * FROM products WHERE 1=1");
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND product_name LIKE ?");
+        }
+
+        if (category != null && !category.trim().isEmpty() && !"ALL".equalsIgnoreCase(category)) {
+            sql.append(" AND category = ?");
+        }
+
+        sql.append(" ORDER BY product_name ASC");
+
+        try (Connection connection = DBConnection.getConnection(); PreparedStatement statement = connection.prepareStatement(sql.toString())) {
+
+            int index = 1;
+
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                statement.setString(index++, "%" + keyword.trim() + "%");
+            }
+
+            if (category != null && !category.trim().isEmpty() && !"ALL".equalsIgnoreCase(category)) {
+                statement.setString(index++, category.trim());
+            }
+
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    products.add(mapProduct(rs));
+                }
+            }
+        }
+
+        return products;
+    }
+
     public boolean updateProduct(Product product) throws SQLException {
-        boolean rowUpdated;
+        boolean updated;
+
         try (Connection connection = DBConnection.getConnection(); PreparedStatement statement = connection.prepareStatement(UPDATE_PRODUCT_SQL)) {
+
             statement.setString(1, product.getProductName());
             statement.setString(2, product.getCategory());
             statement.setDouble(3, product.getUnitPrice());
@@ -126,18 +116,32 @@ public class ProductDAO {
             statement.setInt(5, product.getThreshold());
             statement.setInt(6, product.getProductId());
 
-            rowUpdated = statement.executeUpdate() > 0;
+            updated = statement.executeUpdate() > 0;
         }
-        return rowUpdated;
+
+        return updated;
     }
 
-    // 5. DELETE: Remove product
-    public boolean deleteProduct(int id) throws SQLException {
-        boolean rowDeleted;
+    public boolean deleteProduct(int productId) throws SQLException {
+        boolean deleted;
+
         try (Connection connection = DBConnection.getConnection(); PreparedStatement statement = connection.prepareStatement(DELETE_PRODUCT_SQL)) {
-            statement.setInt(1, id);
-            rowDeleted = statement.executeUpdate() > 0;
+
+            statement.setInt(1, productId);
+            deleted = statement.executeUpdate() > 0;
         }
-        return rowDeleted;
+
+        return deleted;
+    }
+
+    private Product mapProduct(ResultSet rs) throws SQLException {
+        return new Product(
+                rs.getInt("product_id"),
+                rs.getString("product_name"),
+                rs.getString("category"),
+                rs.getDouble("unit_price"),
+                rs.getInt("quantity"),
+                rs.getInt("threshold")
+        );
     }
 }

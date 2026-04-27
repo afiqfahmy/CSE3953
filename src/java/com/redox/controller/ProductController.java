@@ -2,77 +2,161 @@ package com.redox.controller;
 
 import com.redox.dao.ProductDAO;
 import com.redox.model.Product;
+import com.redox.model.User;
 
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.http.*;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
-@WebServlet("/ProductController")
 public class ProductController extends HttpServlet {
 
     private ProductDAO productDAO;
 
+    @Override
     public void init() {
         productDAO = new ProductDAO();
     }
 
+    @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        doGet(request, response);
+
+        String action = request.getParameter("action");
+
+        try {
+            if ("insert".equals(action)) {
+
+                if (!canManageProduct(request)) {
+                    response.sendRedirect(request.getContextPath()
+                            + "/ProductController?action=list&error=unauthorized");
+                    return;
+                }
+
+                insertProduct(request, response);
+
+            } else if ("update".equals(action)) {
+
+                if (!canManageProduct(request)) {
+                    response.sendRedirect(request.getContextPath()
+                            + "/ProductController?action=list&error=unauthorized");
+                    return;
+                }
+
+                updateProduct(request, response);
+
+            } else if ("delete".equals(action)) {
+
+                if (!canDeleteProduct(request)) {
+                    response.sendRedirect(request.getContextPath()
+                            + "/ProductController?action=list&error=unauthorized");
+                    return;
+                }
+
+                deleteProduct(request, response);
+
+            } else {
+                response.sendRedirect(request.getContextPath()
+                        + "/ProductController?action=list");
+            }
+
+        } catch (SQLException | NumberFormatException ex) {
+            throw new ServletException("Product operation failed: " + ex.getMessage(), ex);
+        }
     }
 
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         String action = request.getParameter("action");
-        if (action == null) {
+
+        if (action == null || action.trim().isEmpty()) {
             action = "list";
         }
 
         try {
             switch (action) {
-
-                case "add":   // ✅ NEW (SHOW ADD FORM)
+                case "add":
+                    if (!canManageProduct(request)) {
+                        response.sendRedirect(request.getContextPath()
+                                + "/ProductController?action=list&error=unauthorized");
+                        return;
+                    }
                     showAddForm(request, response);
                     break;
 
-                case "insert":
-                    insertProduct(request, response);
-                    break;
-
-                case "delete":
-                    deleteProduct(request, response);
-                    break;
-
                 case "edit":
+                    if (!canManageProduct(request)) {
+                        response.sendRedirect(request.getContextPath()
+                                + "/ProductController?action=list&error=unauthorized");
+                        return;
+                    }
                     showEditForm(request, response);
-                    break;
-
-                case "update":
-                    updateProduct(request, response);
                     break;
 
                 case "view":
                     viewProduct(request, response);
                     break;
 
+                case "list":
                 default:
                     listProducts(request, response);
                     break;
             }
 
-        } catch (SQLException ex) {
-            throw new ServletException(ex);
+        } catch (SQLException | NumberFormatException ex) {
+            throw new ServletException("Unable to process product request: " + ex.getMessage(), ex);
         }
     }
 
-    // ✅ SHOW ADD PRODUCT PAGE
+    private void listProducts(HttpServletRequest request, HttpServletResponse response)
+            throws SQLException, ServletException, IOException {
+
+        String keyword = request.getParameter("keyword");
+        String category = request.getParameter("category");
+
+        List<Product> productList;
+
+        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+
+        boolean hasCategory = category != null
+                && !category.trim().isEmpty()
+                && !"ALL".equalsIgnoreCase(category);
+
+        if (hasKeyword || hasCategory) {
+            productList = productDAO.searchProducts(keyword, category);
+        } else {
+            productList = productDAO.selectAllProducts();
+        }
+
+        int totalProducts = productList.size();
+        int lowStockCount = 0;
+        int totalQuantity = 0;
+
+        for (Product product : productList) {
+            totalQuantity += product.getQuantity();
+
+            if (product.isLowStock()) {
+                lowStockCount++;
+            }
+        }
+
+        request.setAttribute("productList", productList);
+        request.setAttribute("totalProducts", totalProducts);
+        request.setAttribute("lowStockCount", lowStockCount);
+        request.setAttribute("totalQuantity", totalQuantity);
+        request.setAttribute("keyword", keyword);
+        request.setAttribute("category", category);
+
+        RequestDispatcher dispatcher
+                = request.getRequestDispatcher("/pages/staff/manageProduct.jsp");
+
+        dispatcher.forward(request, response);
+    }
+
     private void showAddForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
@@ -82,39 +166,13 @@ public class ProductController extends HttpServlet {
         dispatcher.forward(request, response);
     }
 
-    // ✅ LIST PRODUCTS
-    private void listProducts(HttpServletRequest request, HttpServletResponse response)
-            throws SQLException, IOException, ServletException {
-
-        String keyword = request.getParameter("keyword");
-        String category = request.getParameter("category");
-
-        List<Product> listProduct;
-
-        if ((keyword != null && !keyword.isEmpty())
-                || (category != null && !category.isEmpty())) {
-
-            listProduct = productDAO.searchProducts(keyword, category);
-
-        } else {
-            listProduct = productDAO.selectAllProducts();
-        }
-
-        request.setAttribute("productList", listProduct);
-
-        RequestDispatcher dispatcher
-                = request.getRequestDispatcher("/pages/staff/manageProduct.jsp");
-
-        dispatcher.forward(request, response);
-    }
-
-    // ✅ SHOW EDIT FORM
     private void showEditForm(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
 
-        int id = Integer.parseInt(request.getParameter("id"));
-        Product existingProduct = productDAO.selectProduct(id);
-        request.setAttribute("product", existingProduct);
+        int productId = Integer.parseInt(request.getParameter("id"));
+        Product product = productDAO.selectProduct(productId);
+
+        request.setAttribute("product", product);
 
         RequestDispatcher dispatcher
                 = request.getRequestDispatcher("/pages/staff/editProduct.jsp");
@@ -122,60 +180,83 @@ public class ProductController extends HttpServlet {
         dispatcher.forward(request, response);
     }
 
-    // ✅ INSERT PRODUCT
-    private void insertProduct(HttpServletRequest request, HttpServletResponse response)
-            throws SQLException, IOException {
-
-        String name = request.getParameter("productName");
-        String category = request.getParameter("category");
-        double price = Double.parseDouble(request.getParameter("unitPrice"));
-        int quantity = Integer.parseInt(request.getParameter("quantity"));
-        int threshold = Integer.parseInt(request.getParameter("threshold"));
-
-        Product newProduct = new Product(0, name, category, price, quantity, threshold);
-        productDAO.insertProduct(newProduct);
-
-        response.sendRedirect(request.getContextPath() + "/ProductController?action=list");
-    }
-
-    // ✅ UPDATE PRODUCT
-    private void updateProduct(HttpServletRequest request, HttpServletResponse response)
-            throws SQLException, IOException {
-
-        int id = Integer.parseInt(request.getParameter("productId"));
-        String name = request.getParameter("productName");
-        String category = request.getParameter("category");
-        double price = Double.parseDouble(request.getParameter("unitPrice"));
-        int quantity = Integer.parseInt(request.getParameter("quantity"));
-        int threshold = Integer.parseInt(request.getParameter("threshold"));
-
-        Product product = new Product(id, name, category, price, quantity, threshold);
-        productDAO.updateProduct(product);
-
-        response.sendRedirect(request.getContextPath() + "/ProductController?action=list");
-    }
-
-    // ✅ DELETE PRODUCT
-    private void deleteProduct(HttpServletRequest request, HttpServletResponse response)
-            throws SQLException, IOException {
-
-        int id = Integer.parseInt(request.getParameter("id"));
-        productDAO.deleteProduct(id);
-
-        response.sendRedirect(request.getContextPath() + "/ProductController?action=list");
-    }
-
-    // ✅ VIEW PRODUCT DETAILS
     private void viewProduct(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
 
-        int id = Integer.parseInt(request.getParameter("id"));
-        Product product = productDAO.selectProduct(id);
+        int productId = Integer.parseInt(request.getParameter("id"));
+        Product product = productDAO.selectProduct(productId);
+
         request.setAttribute("product", product);
 
         RequestDispatcher dispatcher
                 = request.getRequestDispatcher("/pages/staff/productDetails.jsp");
 
         dispatcher.forward(request, response);
+    }
+
+    private void insertProduct(HttpServletRequest request, HttpServletResponse response)
+            throws SQLException, IOException {
+
+        Product product = extractProductFromRequest(request, 0);
+        productDAO.insertProduct(product);
+
+        response.sendRedirect(request.getContextPath()
+                + "/ProductController?action=list&success=added");
+    }
+
+    private void updateProduct(HttpServletRequest request, HttpServletResponse response)
+            throws SQLException, IOException {
+
+        int productId = Integer.parseInt(request.getParameter("productId"));
+        Product product = extractProductFromRequest(request, productId);
+
+        productDAO.updateProduct(product);
+
+        response.sendRedirect(request.getContextPath()
+                + "/ProductController?action=list&success=updated");
+    }
+
+    private void deleteProduct(HttpServletRequest request, HttpServletResponse response)
+            throws SQLException, IOException {
+
+        int productId = Integer.parseInt(request.getParameter("id"));
+        productDAO.deleteProduct(productId);
+
+        response.sendRedirect(request.getContextPath()
+                + "/ProductController?action=list&success=deleted");
+    }
+
+    private Product extractProductFromRequest(HttpServletRequest request, int productId) {
+        String productName = request.getParameter("productName").trim();
+        String category = request.getParameter("category").trim();
+        double unitPrice = Double.parseDouble(request.getParameter("unitPrice"));
+        int quantity = Integer.parseInt(request.getParameter("quantity"));
+        int threshold = Integer.parseInt(request.getParameter("threshold"));
+
+        return new Product(productId, productName, category, unitPrice, quantity, threshold);
+    }
+
+    private boolean canManageProduct(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+
+        if (session == null || session.getAttribute("user") == null) {
+            return false;
+        }
+
+        User user = (User) session.getAttribute("user");
+
+        return user.getRoleId() == 1 || user.getRoleId() == 2;
+    }
+
+    private boolean canDeleteProduct(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+
+        if (session == null || session.getAttribute("user") == null) {
+            return false;
+        }
+
+        User user = (User) session.getAttribute("user");
+
+        return user.getRoleId() == 2;
     }
 }

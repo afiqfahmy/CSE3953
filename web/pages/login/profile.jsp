@@ -29,7 +29,7 @@
                     </div>
                 </div>
 
-                <form action="ProfileController" method="POST" class="p-8 space-y-6" onsubmit="return validatePasswords()">
+                <form action="${pageContext.request.contextPath}/ProfileController" method="POST" class="p-8 space-y-6" onsubmit="return validatePasswords()">
                     <input type="hidden" name="action" value="update">
 
                     <div class="grid grid-cols-2 gap-6">

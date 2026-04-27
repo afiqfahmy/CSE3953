@@ -1,5 +1,7 @@
 package com.redox.model;
 
+import java.text.DecimalFormat;
+
 public class Product {
 
     private int productId;
@@ -9,7 +11,6 @@ public class Product {
     private int quantity;
     private int threshold;
 
-    // Constructors
     public Product() {
     }
 
@@ -22,7 +23,25 @@ public class Product {
         this.threshold = threshold;
     }
 
-    // Getters and Setters
+    public boolean isLowStock() {
+        return quantity <= threshold;
+    }
+
+    public String getStockStatus() {
+        if (quantity <= 0) {
+            return "Out of Stock";
+        } else if (quantity <= threshold) {
+            return "Low Stock";
+        } else {
+            return "In Stock";
+        }
+    }
+
+    public String getFormattedPrice() {
+        DecimalFormat df = new DecimalFormat("0.00");
+        return df.format(unitPrice);
+    }
+
     public int getProductId() {
         return productId;
     }
