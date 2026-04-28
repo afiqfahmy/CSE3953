@@ -8,7 +8,7 @@
 <html>
 <head>
     <title>Submit New Order | Redox RX</title>
-    <link rel="stylesheet" href="style.css">    
+    <link rel="stylesheet" href="style.css"> 
 </head>
 <body>
     <h2>SUBMIT NEW PROCUREMENT ORDER</h2>
