@@ -1,148 +1,116 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="model.Sale" %>
-<%
-    request.setAttribute("activeMenu", "history");
+<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ page import="com.redox.model.Sale" %>
+<%@ page import="com.redox.dao.SalesDAO" %>
 
+<%
     String pastId = request.getParameter("pastId");
 
-    String displaySaleId = "";
-    String displayDate = "";
-    double displayTotal = 0.0;
-    String displayCartJson = "[]";
+    String saleId = "";
+    String saleDate = "";
+    double total = 0;
+    String receiptData = "[]";
 
     if (pastId != null) {
-        // SCENARIO 1: Viewing a past receipt from the History page
-        dao.SalesDAO dao = new dao.SalesDAO();
-        String[] pastData = dao.getPastReceiptData(pastId);
+        SalesDAO dao = new SalesDAO();
+        String[] data = dao.getPastReceiptData(pastId);
 
-        if (pastData[0] != null) {
-            displaySaleId = pastId;
-            displayDate = pastData[0];
-            displayTotal = Double.parseDouble(pastData[1]);
-            displayCartJson = pastData[2] != null ? pastData[2] : "[]";
+        if (data[0] != null) {
+            saleId = pastId;
+            saleDate = data[0];
+            total = Double.parseDouble(data[1]);
+            receiptData = data[2] != null ? data[2] : "[]";
         }
     } else {
-        // SCENARIO 2: A brand new sale just processed
-        Sale newSale = (Sale) request.getAttribute("saleDetails");
-        if (newSale != null) {
-            displaySaleId = newSale.getSaleId();
-            displayDate = newSale.getSaleDate().toString();
-            displayTotal = newSale.getTotalAmount();
-            String cartStr = (String) request.getAttribute("cartItemsJson");
-            displayCartJson = cartStr != null ? cartStr : "[]";
+        Sale sale = (Sale) request.getAttribute("saleDetails");
+
+        if (sale != null) {
+            saleId = sale.getSaleId();
+            saleDate = sale.getSaleDate().toString();
+            total = sale.getTotalAmount();
+
+            String cart = (String) request.getAttribute("cartItemsJson");
+            receiptData = cart != null ? cart : "[]";
         }
     }
 %>
+
 <!DOCTYPE html>
-<html lang="en">
+<html>
     <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Sale Receipt - Redox RX</title>
-
-        <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
-        <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet"/>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-
-        <script>
-            tailwind.config = {
-                theme: {
-                    extend: {
-                        fontFamily: {
-                            sans: ['Manrope', 'sans-serif'],
-                            headline: ['Manrope', 'sans-serif']
-                        },
-                        colors: {
-                            primary: '#3b82f6',
-                            'surface-tint': '#1d4ed8'
-                        }
-                    }
-                }
-            }
-        </script>
+        <title>Receipt | Redox RX</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
     </head>
-    <body class="bg-gray-50 text-gray-800 font-sans">
 
-        <%@ include file="/partials/sidebar.jsp" %>
+    <body class="bg-slate-100">
 
-        <main class="ml-64 p-8 min-h-screen flex items-center justify-center">
-            <div class="max-w-md w-full bg-white p-8 rounded-lg shadow-lg border border-gray-200 text-center">
+        <jsp:include page="/partials/sales-sidebar.jsp">
+            <jsp:param name="active" value="history"/>
+        </jsp:include>
 
-                <div class="mb-6 flex justify-center">
-                    <svg class="h-16 w-16 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+        <main class="pl-60 min-h-screen p-8 flex items-center justify-center">
+
+            <div class="max-w-xl w-full bg-white rounded-2xl shadow-sm p-8">
+
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-black text-slate-800">Receipt</h1>
+                    <p class="text-slate-500">Redox RX Inventory System</p>
                 </div>
 
-                <h2 class="text-3xl font-extrabold text-gray-900 mb-2">Sale Receipt</h2>
-                <p class="text-sm text-gray-500 mb-8">Transaction details and items purchased.</p>
-
-                <% if (!displaySaleId.isEmpty()) {%>
-                <div class="bg-gray-50 p-6 rounded-lg text-left border border-gray-100 mb-8">
-
-                    <div class="space-y-3 mb-4">
-                        <div class="flex justify-between border-b border-gray-200 pb-2">
-                            <span class="text-sm font-semibold text-gray-500">Sale ID:</span>
-                            <span class="text-sm font-bold text-gray-900"><%= displaySaleId%></span>
-                        </div>
-                        <div class="flex justify-between border-b border-gray-200 pb-2">
-                            <span class="text-sm font-semibold text-gray-500">Date:</span>
-                            <span class="text-sm font-bold text-gray-900"><%= displayDate%></span>
-                        </div>
+                <div class="space-y-3 mb-6">
+                    <div class="flex justify-between">
+                        <span class="text-slate-500 font-semibold">Sale ID</span>
+                        <span class="font-bold"><%= saleId%></span>
                     </div>
 
-                    <div class="mb-4">
-                        <h3 class="text-xs font-extrabold text-gray-400 uppercase tracking-wider mb-3">Items Purchased</h3>
-                        <ul id="receiptItemsList" class="space-y-2 border-b border-dashed border-gray-300 pb-4">
-                        </ul>
-                    </div>
-
-                    <div class="flex justify-between pt-2">
-                        <span class="text-base font-bold text-gray-700">Total Amount:</span>
-                        <span class="text-xl font-extrabold text-green-600">RM<%= String.format("%.2f", displayTotal)%></span>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500 font-semibold">Date</span>
+                        <span class="font-bold"><%= saleDate%></span>
                     </div>
                 </div>
-                <% } else { %>
-                <div class="bg-red-50 p-4 rounded-lg text-red-600 mb-8 text-sm font-semibold">
-                    Error retrieving sale details. This receipt may not exist.
-                </div>
-                <% } %>
 
-                <% if (pastId != null) { %>
-                <a href="history.jsp" 
-                   class="inline-block w-full py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-bold text-white bg-gray-600 hover:bg-gray-800 focus:outline-none transition-colors">
-                    Back to History
+                <div class="border-t border-b py-5 mb-6">
+                    <ul id="receiptItems" class="space-y-4"></ul>
+                </div>
+
+                <div class="flex justify-between items-center">
+                    <span class="text-xl font-bold">Total</span>
+                    <span class="text-3xl font-black text-green-600">
+                        RM <%= String.format("%.2f", total)%>
+                    </span>
+                </div>
+
+                <a href="${pageContext.request.contextPath}/pages/sales/sales.jsp"
+                   class="block text-center mt-8 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold">
+                    Back to Sales
                 </a>
-                <% } else { %>
-                <a href="pages/sales/sales.jsp" 
-                   class="inline-block w-full py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-bold text-white bg-[#002147] hover:bg-blue-900 focus:outline-none transition-colors">
-                    Record Another Sale
-                </a>
-                <% }%>
+
             </div>
+
         </main>
 
         <script>
-            // We inject the correct cart string directly from our Java variables
-            const rawCartData = <%= displayCartJson%>;
-            const listContainer = document.getElementById('receiptItemsList');
+    const items = <%= receiptData%>;
+    const container = document.getElementById("receiptItems");
 
-            if (rawCartData && rawCartData.length > 0) {
-                rawCartData.forEach(item => {
-                    const li = document.createElement('li');
-                    li.className = 'flex justify-between items-start text-sm';
-                    li.innerHTML = `
-                        <div class="flex-1 pr-4">
-                            <p class="font-bold text-gray-800 leading-tight">` + item.productName + `</p>
-                            <p class="text-xs font-semibold text-gray-500 mt-0.5">` + item.quantity + ` x RM` + item.price.toFixed(2) + `</p>
-                        </div>
-                        <span class="font-bold text-gray-900">RM` + item.total.toFixed(2) + `</span>
-                    `;
-                    listContainer.appendChild(li);
-                });
-            } else {
-                listContainer.innerHTML = '<li class="text-sm text-gray-500 italic">No item details available.</li>';
-            }
+    if (items && items.length > 0) {
+        items.forEach(function (item) {
+            container.innerHTML +=
+                    '<li class="flex justify-between">' +
+                    '<div>' +
+                    '<h3 class="font-bold text-slate-800">' + item.productName + '</h3>' +
+                    '<p class="text-sm text-slate-500">' +
+                    item.quantity + ' × RM ' + item.price.toFixed(2) +
+                    '</p>' +
+                    '</div>' +
+                    '<span class="font-bold">RM ' + item.total.toFixed(2) + '</span>' +
+                    '</li>';
+        });
+    } else {
+        container.innerHTML =
+                '<li class="text-slate-400 italic text-center">No item details available.</li>';
+    }
         </script>
+
     </body>
 </html>
