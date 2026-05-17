@@ -12,7 +12,7 @@
 
     <body class="bg-slate-100">
 
-        <jsp:include page="/partials/sidebar.jsp">
+        <jsp:include page="/partials/order-sidebar.jsp">
             <jsp:param name="active" value="report"/>
         </jsp:include>
 
