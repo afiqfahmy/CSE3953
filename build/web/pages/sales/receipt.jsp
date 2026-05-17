@@ -1,8 +1,37 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="model.Sale" %>
 <%
-    Sale sale = (Sale) request.getAttribute("saleDetails");
-    String cartItemsJson = (String) request.getAttribute("cartItemsJson");
+    request.setAttribute("activeMenu", "history");
+
+    String pastId = request.getParameter("pastId");
+
+    String displaySaleId = "";
+    String displayDate = "";
+    double displayTotal = 0.0;
+    String displayCartJson = "[]";
+
+    if (pastId != null) {
+        // SCENARIO 1: Viewing a past receipt from the History page
+        dao.SalesDAO dao = new dao.SalesDAO();
+        String[] pastData = dao.getPastReceiptData(pastId);
+
+        if (pastData[0] != null) {
+            displaySaleId = pastId;
+            displayDate = pastData[0];
+            displayTotal = Double.parseDouble(pastData[1]);
+            displayCartJson = pastData[2] != null ? pastData[2] : "[]";
+        }
+    } else {
+        // SCENARIO 2: A brand new sale just processed
+        Sale newSale = (Sale) request.getAttribute("saleDetails");
+        if (newSale != null) {
+            displaySaleId = newSale.getSaleId();
+            displayDate = newSale.getSaleDate().toString();
+            displayTotal = newSale.getTotalAmount();
+            String cartStr = (String) request.getAttribute("cartItemsJson");
+            displayCartJson = cartStr != null ? cartStr : "[]";
+        }
+    }
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -45,20 +74,20 @@
                     </svg>
                 </div>
 
-                <h2 class="text-3xl font-extrabold text-gray-900 mb-2">Sale Successful</h2>
-                <p class="text-sm text-gray-500 mb-8">The transaction has been recorded and stock updated.</p>
+                <h2 class="text-3xl font-extrabold text-gray-900 mb-2">Sale Receipt</h2>
+                <p class="text-sm text-gray-500 mb-8">Transaction details and items purchased.</p>
 
-                <% if (sale != null) {%>
+                <% if (!displaySaleId.isEmpty()) {%>
                 <div class="bg-gray-50 p-6 rounded-lg text-left border border-gray-100 mb-8">
 
                     <div class="space-y-3 mb-4">
                         <div class="flex justify-between border-b border-gray-200 pb-2">
                             <span class="text-sm font-semibold text-gray-500">Sale ID:</span>
-                            <span class="text-sm font-bold text-gray-900"><%= sale.getSaleId()%></span>
+                            <span class="text-sm font-bold text-gray-900"><%= displaySaleId%></span>
                         </div>
                         <div class="flex justify-between border-b border-gray-200 pb-2">
                             <span class="text-sm font-semibold text-gray-500">Date:</span>
-                            <span class="text-sm font-bold text-gray-900"><%= sale.getSaleDate()%></span>
+                            <span class="text-sm font-bold text-gray-900"><%= displayDate%></span>
                         </div>
                     </div>
 
@@ -70,25 +99,32 @@
 
                     <div class="flex justify-between pt-2">
                         <span class="text-base font-bold text-gray-700">Total Amount:</span>
-                        <span class="text-xl font-extrabold text-green-600">RM<%= String.format("%.2f", sale.getTotalAmount())%></span>
+                        <span class="text-xl font-extrabold text-green-600">RM<%= String.format("%.2f", displayTotal)%></span>
                     </div>
                 </div>
                 <% } else { %>
                 <div class="bg-red-50 p-4 rounded-lg text-red-600 mb-8 text-sm font-semibold">
-                    Error retrieving sale details.
+                    Error retrieving sale details. This receipt may not exist.
                 </div>
-                <% }%>
+                <% } %>
 
+                <% if (pastId != null) { %>
+                <a href="history.jsp" 
+                   class="inline-block w-full py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-bold text-white bg-gray-600 hover:bg-gray-800 focus:outline-none transition-colors">
+                    Back to History
+                </a>
+                <% } else { %>
                 <a href="pages/sales/sales.jsp" 
                    class="inline-block w-full py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-bold text-white bg-[#002147] hover:bg-blue-900 focus:outline-none transition-colors">
                     Record Another Sale
                 </a>
+                <% }%>
             </div>
         </main>
 
         <script>
-            // Retrieve the JSON string passed from the Servlet
-            const rawCartData = <%= cartItemsJson != null ? cartItemsJson : "[]"%>;
+            // We inject the correct cart string directly from our Java variables
+            const rawCartData = <%= displayCartJson%>;
             const listContainer = document.getElementById('receiptItemsList');
 
             if (rawCartData && rawCartData.length > 0) {

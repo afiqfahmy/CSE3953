@@ -17,12 +17,14 @@ public class SalesDAO {
             conn.setAutoCommit(false); // Start transaction protection
             
             // THE FIX: Using exact column names from your database screenshot
-            String insertSale = "INSERT INTO sales (sale_id, sale_date, total_amount) VALUES (?, ?, ?)";
-            PreparedStatement psSale = conn.prepareStatement(insertSale);
-            psSale.setString(1, sale.getSaleId());
-            psSale.setDate(2, new java.sql.Date(sale.getSaleDate().getTime()));
-            psSale.setDouble(3, sale.getTotalAmount());
-            psSale.executeUpdate();
+// CHANGE THIS SECTION IN processMultipleSalesManual:
+String insertSale = "INSERT INTO sales (sale_id, sale_date, total_amount, receipt_data) VALUES (?, ?, ?, ?)";
+PreparedStatement psSale = conn.prepareStatement(insertSale);
+psSale.setString(1, sale.getSaleId());
+psSale.setDate(2, new java.sql.Date(sale.getSaleDate().getTime()));
+psSale.setDouble(3, sale.getTotalAmount());
+psSale.setString(4, cartData); // <-- This saves the item list into the database!
+psSale.executeUpdate();
             
             // Assuming your products table column is 'productId'. 
             // If it is 'product_id', change it here!
@@ -115,5 +117,28 @@ public class SalesDAO {
             try { if (conn != null) conn.close(); } catch (SQLException e) {}
         }
         return salesList;
+    }
+    
+    // Add this new method to fetch a past receipt
+    public String[] getPastReceiptData(String saleId) {
+        String[] result = new String[3]; // We will return: [Date, Total, CartJsonItems]
+        Connection conn = DBConnection.getConnection();
+        try {
+            String sql = "SELECT sale_date, total_amount, receipt_data FROM sales WHERE sale_id = ?";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, saleId);
+            java.sql.ResultSet rs = ps.executeQuery();
+            
+            if (rs.next()) {
+                result[0] = rs.getDate("sale_date").toString();
+                result[1] = String.valueOf(rs.getDouble("total_amount"));
+                result[2] = rs.getString("receipt_data"); // The saved JSON string
+            }
+        } catch (SQLException e) { 
+            e.printStackTrace(); 
+        } finally { 
+            try { if (conn != null) conn.close(); } catch (SQLException e) {} 
+        }
+        return result;
     }
 }
