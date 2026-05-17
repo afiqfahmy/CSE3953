@@ -10,6 +10,7 @@
 
 <aside class="h-screen w-60 fixed left-0 top-0 bg-[#082B4C] flex flex-col px-4 py-6 z-50">
 
+    <!-- Logo -->
     <div class="mb-8">
         <div class="flex items-center gap-3">
             <div class="w-11 h-11 rounded-xl bg-white flex items-center justify-center shadow-sm">
@@ -25,28 +26,30 @@
         </div>
     </div>
 
+    <!-- Navigation -->
     <nav class="flex-1 space-y-2">
 
         <a class="<%= "product".equals(active) ? activeClass : inactiveClass%>"
            href="${pageContext.request.contextPath}/ProductController?action=list">
+
             <span class="material-symbols-outlined text-[21px]">inventory_2</span>
             <span class="text-sm">Manage Products</span>
-        </a>
 
-        <a class="<%= "alert".equals(active) ? activeClass : inactiveClass%>"
-           href="${pageContext.request.contextPath}/ProductController?action=list&lowStock=true">
-            <span class="material-symbols-outlined text-[21px]">warning</span>
-            <span class="text-sm">Low Stock Status</span>
         </a>
 
     </nav>
 
+    <!-- Logout -->
     <div class="pt-5 border-t border-white/10">
+
         <a href="${pageContext.request.contextPath}/LogoutController"
            class="flex items-center gap-3 text-red-300 hover:text-white hover:bg-red-500/20 rounded-xl px-4 py-3 transition-all">
+
             <span class="material-symbols-outlined text-[21px]">logout</span>
             <span class="text-sm font-medium">Logout</span>
+
         </a>
+
     </div>
 
 </aside>
