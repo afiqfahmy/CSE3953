@@ -46,11 +46,19 @@ public class Product {
         return productId;
     }
 
+    public int getId() {
+        return productId;
+    }
+
     public void setProductId(int productId) {
         this.productId = productId;
     }
 
     public String getProductName() {
+        return productName;
+    }
+
+    public String getName() {
         return productName;
     }
 
@@ -70,11 +78,19 @@ public class Product {
         return unitPrice;
     }
 
+    public double getPrice() {
+        return unitPrice;
+    }
+
     public void setUnitPrice(double unitPrice) {
         this.unitPrice = unitPrice;
     }
 
     public int getQuantity() {
+        return quantity;
+    }
+
+    public int getStock() {
         return quantity;
     }
 
