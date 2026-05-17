@@ -44,7 +44,7 @@
 
     <body class="bg-slate-100">
 
-        <jsp:include page="/partials/sales-sidebar.jsp">
+        <jsp:include page="/partials/sidebar.jsp">
             <jsp:param name="active" value="history"/>
         </jsp:include>
 
@@ -90,26 +90,26 @@
         </main>
 
         <script>
-    const items = <%= receiptData%>;
-    const container = document.getElementById("receiptItems");
+            const items = <%= receiptData%>;
+            const container = document.getElementById("receiptItems");
 
-    if (items && items.length > 0) {
-        items.forEach(function (item) {
-            container.innerHTML +=
-                    '<li class="flex justify-between">' +
-                    '<div>' +
-                    '<h3 class="font-bold text-slate-800">' + item.productName + '</h3>' +
-                    '<p class="text-sm text-slate-500">' +
-                    item.quantity + ' × RM ' + item.price.toFixed(2) +
-                    '</p>' +
-                    '</div>' +
-                    '<span class="font-bold">RM ' + item.total.toFixed(2) + '</span>' +
-                    '</li>';
-        });
-    } else {
-        container.innerHTML =
-                '<li class="text-slate-400 italic text-center">No item details available.</li>';
-    }
+            if (items && items.length > 0) {
+                items.forEach(function (item) {
+                    container.innerHTML +=
+                            '<li class="flex justify-between">' +
+                            '<div>' +
+                            '<h3 class="font-bold text-slate-800">' + item.productName + '</h3>' +
+                            '<p class="text-sm text-slate-500">' +
+                            item.quantity + ' × RM ' + item.price.toFixed(2) +
+                            '</p>' +
+                            '</div>' +
+                            '<span class="font-bold">RM ' + item.total.toFixed(2) + '</span>' +
+                            '</li>';
+                });
+            } else {
+                container.innerHTML =
+                        '<li class="text-slate-400 italic text-center">No item details available.</li>';
+            }
         </script>
 
     </body>
