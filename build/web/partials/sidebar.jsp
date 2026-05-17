@@ -3,42 +3,56 @@
     if (active == null) {
         active = "";
     }
-    String activeClass = "flex items-center gap-3 bg-blue-400/20 text-white rounded-full px-4 py-3 font-semibold";
-    String inactiveClass = "flex items-center gap-3 text-blue-200/70 hover:text-white px-4 py-3 transition-colors hover:bg-blue-400/10 transition-all duration-200";
+
+    String activeClass = "flex items-center gap-3 bg-blue-600 text-white rounded-xl px-4 py-3 font-semibold shadow-sm";
+    String inactiveClass = "flex items-center gap-3 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl px-4 py-3 transition-all duration-200";
 %>
-<!-- SideNavBar -->
-<aside class="h-screen w-64 fixed left-0 top-0 overflow-y-auto bg-[#002147] dark:bg-slate-950 flex flex-col py-8 px-4 z-50">
-    <div class="mb-10 px-4">
-        <div class="text-xl font-bold tracking-tighter text-white uppercase font-headline mb-1">Vehicle Booking System</div>
-        <div class="flex items-center gap-3 mt-6">
-            <div class="w-12 h-12 rounded-xl overflow-hidden bg-white p-1 shadow-sm">
-                <img
-                    class="w-full h-full object-contain"
-                    alt="University Malaysia Terengganu crest"
-                    src="${pageContext.request.contextPath}/assets/images/Logo_Rasmi_UMT.png"
-                />
+
+<aside class="h-screen w-60 fixed left-0 top-0 bg-[#082B4C] flex flex-col px-4 py-6 z-50">
+
+    <div class="mb-8">
+        <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                <img src="${pageContext.request.contextPath}/assets/images/Logo_Rasmi_UMT.png"
+                     alt="Redox RX Logo"
+                     class="w-8 h-8 object-contain">
             </div>
+
             <div>
-                <p class="text-white font-semibold text-sm leading-tight">University Malaysia Terengganu</p>
-                <p class="text-blue-200/60 text-xs font-medium">Shah Semak</p>
+                <h1 class="text-white text-lg font-bold leading-tight">Redox RX</h1>
+                <p class="text-blue-200 text-xs leading-tight">Inventory System</p>
             </div>
         </div>
     </div>
+
     <nav class="flex-1 space-y-2">
-        <!-- Dashboard -->
-        <a class="<%= "dashboard".equals(active) ? activeClass : inactiveClass %>" href="${pageContext.request.contextPath}/pages/user/userDashboard.jsp">
-            <span class="material-symbols-outlined">dashboard</span>
-            <span class="font-medium">Dashboard</span>
+
+        <a class="<%= "product".equals(active) ? activeClass : inactiveClass%>"
+           href="${pageContext.request.contextPath}/ProductController?action=list">
+            <span class="material-symbols-outlined text-[21px]">inventory_2</span>
+            <span class="text-sm">Manage Products</span>
         </a>
-        <!-- Booking Request Management -->
-        <a class="<%= "booking".equals(active) ? activeClass : inactiveClass %>" href="${pageContext.request.contextPath}/pages/user/bookingRequest.jsp">
-            <span class="material-symbols-outlined">event_note</span>
-            <span class="font-medium">Booking Requests</span>
+
+        <a class="<%= "order".equals(active) ? activeClass : inactiveClass%>"
+           href="${pageContext.request.contextPath}/OrderServlet?action=list">
+            <span class="material-symbols-outlined text-[21px]">receipt_long</span>
+            <span class="text-sm">Manage Orders</span>
         </a>
+
+        <a class="<%= "report".equals(active) ? activeClass : inactiveClass%>"
+           href="${pageContext.request.contextPath}/OrderServlet?action=report">
+            <span class="material-symbols-outlined text-[21px]">bar_chart</span>
+            <span class="text-sm">Order Report</span>
+        </a>
+
     </nav>
-    <div class="mt-auto px-4 pt-6 border-t border-white/5">
-        <button class="w-full bg-gradient-to-r from-primary to-surface-tint text-white py-3 rounded-md font-bold text-sm tracking-tight hover:scale-95 duration-150 ease-in-out" href="${pageContext.request.contextPath}/pages/user/bookingRequest.jsp">
-            New Booking
-        </button>
+
+    <div class="pt-5 border-t border-white/10">
+        <a href="${pageContext.request.contextPath}/LogoutController"
+           class="flex items-center gap-3 text-red-300 hover:text-white hover:bg-red-500/20 rounded-xl px-4 py-3 transition-all">
+            <span class="material-symbols-outlined text-[21px]">logout</span>
+            <span class="text-sm font-medium">Logout</span>
+        </a>
     </div>
+
 </aside>
