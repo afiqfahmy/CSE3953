@@ -57,6 +57,19 @@
             <span class="text-sm">Sales History</span>
         </a>
 
+        <a class="<%= "dailyreport".equals(active) ? activeClass : inactiveClass%>"
+           href="${pageContext.request.contextPath}/pages/sales/dailyReport.jsp">
+
+            <span class="material-symbols-outlined text-[21px]">
+                monitoring
+            </span>
+
+            <span class="text-sm">
+                Daily Report
+            </span>
+
+        </a>
+
     </nav>
 
     <div class="pt-5 border-t border-white/10">

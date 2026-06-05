@@ -43,6 +43,12 @@
 
                             <div>
                                 <c:choose>
+                                    <c:when test="${product.stockStatus == 'Out of Stock'}">
+                                        <span class="bg-slate-100 text-slate-700 px-4 py-2 rounded-full text-sm font-bold">
+                                            Out of Stock
+                                        </span>
+                                    </c:when>
+
                                     <c:when test="${product.lowStock}">
                                         <span class="bg-red-100 text-red-700 px-4 py-2 rounded-full text-sm font-bold">
                                             Low Stock
@@ -74,7 +80,21 @@
                         </div>
 
                         <div class="bg-slate-50 rounded-2xl p-5">
-                            <p class="text-slate-500 text-sm">Unit Price</p>
+                            <p class="text-slate-500 text-sm">Supplier Name</p>
+                            <h3 class="text-xl font-bold text-slate-800">
+                                <c:out value="${empty product.supplierName ? 'Not assigned' : product.supplierName}" />
+                            </h3>
+                        </div>
+
+                        <div class="bg-slate-50 rounded-2xl p-5">
+                            <p class="text-slate-500 text-sm">Expiry Date</p>
+                            <h3 class="text-xl font-bold text-slate-800">
+                                <c:out value="${empty product.expiryDate ? 'Not set' : product.expiryDate}" />
+                            </h3>
+                        </div>
+
+                        <div class="bg-slate-50 rounded-2xl p-5">
+                            <p class="text-slate-500 text-sm">Selling Price</p>
                             <h3 class="text-xl font-bold text-slate-800">RM ${product.formattedPrice}</h3>
                         </div>
 

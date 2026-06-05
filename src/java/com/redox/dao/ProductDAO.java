@@ -1,6 +1,7 @@
 package com.redox.dao;
 
 import com.redox.model.Product;
+import com.redox.model.OrderedItemSource;
 import com.redox.util.DBConnection;
 
 import java.sql.*;
@@ -10,7 +11,7 @@ import java.util.List;
 public class ProductDAO {
 
     private static final String INSERT_PRODUCT_SQL
-            = "INSERT INTO products (product_name, category, unit_price, quantity, threshold) VALUES (?, ?, ?, ?, ?)";
+            = "INSERT INTO products (product_name, category, unit_price, quantity, threshold, expiry_date, supplier_name) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
     private static final String SELECT_PRODUCT_BY_ID
             = "SELECT * FROM products WHERE product_id = ?";
@@ -19,7 +20,7 @@ public class ProductDAO {
             = "SELECT * FROM products ORDER BY product_name ASC";
 
     private static final String UPDATE_PRODUCT_SQL
-            = "UPDATE products SET product_name = ?, category = ?, unit_price = ?, quantity = ?, threshold = ? WHERE product_id = ?";
+            = "UPDATE products SET product_name = ?, category = ?, unit_price = ?, quantity = ?, threshold = ?, expiry_date = ?, supplier_name = ? WHERE product_id = ?";
 
     private static final String DELETE_PRODUCT_SQL
             = "DELETE FROM products WHERE product_id = ?";
@@ -32,6 +33,8 @@ public class ProductDAO {
             statement.setDouble(3, product.getUnitPrice());
             statement.setInt(4, product.getQuantity());
             statement.setInt(5, product.getThreshold());
+            statement.setString(6, product.getExpiryDate());
+            statement.setString(7, product.getSupplierName());
 
             statement.executeUpdate();
         }
@@ -105,8 +108,6 @@ public class ProductDAO {
     }
 
     public boolean updateProduct(Product product) throws SQLException {
-        boolean updated;
-
         try (Connection connection = DBConnection.getConnection(); PreparedStatement statement = connection.prepareStatement(UPDATE_PRODUCT_SQL)) {
 
             statement.setString(1, product.getProductName());
@@ -114,24 +115,35 @@ public class ProductDAO {
             statement.setDouble(3, product.getUnitPrice());
             statement.setInt(4, product.getQuantity());
             statement.setInt(5, product.getThreshold());
-            statement.setInt(6, product.getProductId());
+            statement.setString(6, product.getExpiryDate());
+            statement.setString(7, product.getSupplierName());
+            statement.setInt(8, product.getProductId());
 
-            updated = statement.executeUpdate() > 0;
+            return statement.executeUpdate() > 0;
         }
-
-        return updated;
     }
 
     public boolean deleteProduct(int productId) throws SQLException {
-        boolean deleted;
-
         try (Connection connection = DBConnection.getConnection(); PreparedStatement statement = connection.prepareStatement(DELETE_PRODUCT_SQL)) {
 
             statement.setInt(1, productId);
-            deleted = statement.executeUpdate() > 0;
+            return statement.executeUpdate() > 0;
+        }
+    }
+
+    public List<String> getSupplierNames() throws SQLException {
+        List<String> suppliers = new ArrayList<>();
+
+        String sql = "SELECT DISTINCT supplier_name FROM orders WHERE supplier_name IS NOT NULL ORDER BY supplier_name ASC";
+
+        try (Connection connection = DBConnection.getConnection(); PreparedStatement statement = connection.prepareStatement(sql); ResultSet rs = statement.executeQuery()) {
+
+            while (rs.next()) {
+                suppliers.add(rs.getString("supplier_name"));
+            }
         }
 
-        return deleted;
+        return suppliers;
     }
 
     private Product mapProduct(ResultSet rs) throws SQLException {
@@ -141,7 +153,76 @@ public class ProductDAO {
                 rs.getString("category"),
                 rs.getDouble("unit_price"),
                 rs.getInt("quantity"),
-                rs.getInt("threshold")
+                rs.getInt("threshold"),
+                rs.getString("expiry_date"),
+                rs.getString("supplier_name")
         );
+    }
+
+    public Product selectProductByName(String productName) throws SQLException {
+        String sql = "SELECT * FROM products WHERE LOWER(product_name) = LOWER(?) LIMIT 1";
+
+        try (Connection connection = DBConnection.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setString(1, productName);
+
+            try (ResultSet rs = statement.executeQuery()) {
+                if (rs.next()) {
+                    return mapProduct(rs);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public boolean increaseStockByProductName(String productName, int quantityToAdd) throws SQLException {
+        String sql = "UPDATE products SET quantity = quantity + ? WHERE LOWER(product_name) = LOWER(?)";
+
+        try (Connection connection = DBConnection.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, quantityToAdd);
+            statement.setString(2, productName);
+
+            return statement.executeUpdate() > 0;
+        }
+    }
+
+    public boolean increaseStockByProductId(int productId, int quantityToAdd) throws SQLException {
+        String sql = "UPDATE products SET quantity = quantity + ? WHERE product_id = ?";
+
+        try (Connection connection = DBConnection.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, quantityToAdd);
+            statement.setInt(2, productId);
+
+            return statement.executeUpdate() > 0;
+        }
+    }
+
+    public List<OrderedItemSource> getCompletedOrderItemsForProduct() throws SQLException {
+        List<OrderedItemSource> items = new ArrayList<>();
+
+        String sql
+                = "SELECT oi.order_item_id, oi.item_name, o.supplier_name, oi.quantity, oi.unit_price "
+                + "FROM order_items oi "
+                + "JOIN orders o ON oi.order_id = o.order_id "
+                + "WHERE o.status = 'Completed' "
+                + "ORDER BY o.order_date DESC";
+
+        try (Connection connection = DBConnection.getConnection(); PreparedStatement statement = connection.prepareStatement(sql); ResultSet rs = statement.executeQuery()) {
+
+            while (rs.next()) {
+                items.add(new OrderedItemSource(
+                        rs.getInt("order_item_id"),
+                        rs.getString("item_name"),
+                        rs.getString("supplier_name"),
+                        rs.getInt("quantity"),
+                        rs.getDouble("unit_price")
+                ));
+            }
+        }
+
+        return items;
     }
 }

@@ -9,10 +9,16 @@
     String saleDate = "";
     double total = 0;
     String receiptData = "[]";
+    String paymentMethod = "";
+    double cashReceived = 0;
+    double changeAmount = 0;
 
     if (pastId != null) {
         SalesDAO dao = new SalesDAO();
         String[] data = dao.getPastReceiptData(pastId);
+        paymentMethod = data[3];
+        cashReceived = Double.parseDouble(data[4]);
+        changeAmount = Double.parseDouble(data[5]);
 
         if (data[0] != null) {
             saleId = pastId;
@@ -27,6 +33,9 @@
             saleId = sale.getSaleId();
             saleDate = sale.getSaleDate().toString();
             total = sale.getTotalAmount();
+            paymentMethod = sale.getPaymentMethod();
+            cashReceived = sale.getCashReceived();
+            changeAmount = sale.getChangeAmount();
 
             String cart = (String) request.getAttribute("cartItemsJson");
             receiptData = cart != null ? cart : "[]";
@@ -73,6 +82,40 @@
                     <ul id="receiptItems" class="space-y-4"></ul>
                 </div>
 
+                <div class="border-t pt-4 mb-4 space-y-2">
+
+                    <div class="flex justify-between">
+                        <span class="text-slate-500 font-semibold">
+                            Payment Method
+                        </span>
+
+                        <span class="font-bold">
+                            <%= paymentMethod%>
+                        </span>
+                    </div>
+
+                    <div class="flex justify-between">
+                        <span class="text-slate-500 font-semibold">
+                            Cash Received
+                        </span>
+
+                        <span class="font-bold">
+                            RM <%= String.format("%.2f", cashReceived)%>
+                        </span>
+                    </div>
+
+                    <div class="flex justify-between">
+                        <span class="text-slate-500 font-semibold">
+                            Change
+                        </span>
+
+                        <span class="font-bold text-green-600">
+                            RM <%= String.format("%.2f", changeAmount)%>
+                        </span>
+                    </div>
+
+                </div>
+
                 <div class="flex justify-between items-center">
                     <span class="text-xl font-bold">Total</span>
                     <span class="text-3xl font-black text-green-600">
@@ -80,9 +123,9 @@
                     </span>
                 </div>
 
-                <a href="${pageContext.request.contextPath}/pages/sales/sales.jsp"
+                <a href="${pageContext.request.contextPath}/pages/sales/history.jsp"
                    class="block text-center mt-8 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold">
-                    Back to Sales
+                    Back to History
                 </a>
 
             </div>

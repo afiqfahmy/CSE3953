@@ -1,5 +1,8 @@
 package com.redox.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Order {
 
     private int orderId;
@@ -8,8 +11,10 @@ public class Order {
     private double totalAmount;
     private String orderDate;
     private String status;
+    private List<OrderItem> orderItems;
 
     public Order() {
+        this.orderItems = new ArrayList<>();
     }
 
     public Order(int orderId, String supplierName, String items, double totalAmount, String orderDate, String status) {
@@ -19,6 +24,7 @@ public class Order {
         this.totalAmount = totalAmount;
         this.orderDate = orderDate;
         this.status = status;
+        this.orderItems = new ArrayList<>();
     }
 
     public int getOrderId() {
@@ -82,5 +88,13 @@ public class Order {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public List<OrderItem> getOrderItems() {
+        return orderItems;
+    }
+
+    public void setOrderItems(List<OrderItem> orderItems) {
+        this.orderItems = orderItems;
     }
 }

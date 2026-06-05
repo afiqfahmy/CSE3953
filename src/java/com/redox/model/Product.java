@@ -7,20 +7,25 @@ public class Product {
     private int productId;
     private String productName;
     private String category;
-    private double unitPrice;
+    private double unitPrice; // selling price
     private int quantity;
     private int threshold;
+    private String expiryDate;
+    private String supplierName;
 
     public Product() {
     }
 
-    public Product(int productId, String productName, String category, double unitPrice, int quantity, int threshold) {
+    public Product(int productId, String productName, String category, double unitPrice,
+            int quantity, int threshold, String expiryDate, String supplierName) {
         this.productId = productId;
         this.productName = productName;
         this.category = category;
         this.unitPrice = unitPrice;
         this.quantity = quantity;
         this.threshold = threshold;
+        this.expiryDate = expiryDate;
+        this.supplierName = supplierName;
     }
 
     public boolean isLowStock() {
@@ -30,16 +35,15 @@ public class Product {
     public String getStockStatus() {
         if (quantity <= 0) {
             return "Out of Stock";
-        } else if (quantity <= threshold) {
-            return "Low Stock";
-        } else {
-            return "In Stock";
         }
+        if (quantity <= threshold) {
+            return "Low Stock";
+        }
+        return "In Stock";
     }
 
     public String getFormattedPrice() {
-        DecimalFormat df = new DecimalFormat("0.00");
-        return df.format(unitPrice);
+        return new DecimalFormat("0.00").format(unitPrice);
     }
 
     public int getProductId() {
@@ -104,5 +108,21 @@ public class Product {
 
     public void setThreshold(int threshold) {
         this.threshold = threshold;
+    }
+
+    public String getExpiryDate() {
+        return expiryDate;
+    }
+
+    public void setExpiryDate(String expiryDate) {
+        this.expiryDate = expiryDate;
+    }
+
+    public String getSupplierName() {
+        return supplierName;
+    }
+
+    public void setSupplierName(String supplierName) {
+        this.supplierName = supplierName;
     }
 }

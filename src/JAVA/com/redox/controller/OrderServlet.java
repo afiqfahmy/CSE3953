@@ -2,12 +2,16 @@ package com.redox.controller;
 
 import com.redox.dao.OrderDAO;
 import com.redox.model.Order;
+import com.redox.model.OrderItem;
+import com.redox.dao.ProductDAO;
+import com.redox.model.Product;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.*;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class OrderServlet extends HttpServlet {
@@ -99,7 +103,11 @@ public class OrderServlet extends HttpServlet {
     }
 
     private void showCreateForm(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws SQLException, ServletException, IOException {
+
+        ProductDAO productDAO = new ProductDAO();
+
+        request.setAttribute("productList", productDAO.selectAllProducts());
 
         RequestDispatcher dispatcher
                 = request.getRequestDispatcher("/pages/order/create-order.jsp");
@@ -111,9 +119,13 @@ public class OrderServlet extends HttpServlet {
             throws SQLException, ServletException, IOException {
 
         int orderId = Integer.parseInt(request.getParameter("id"));
+
         Order order = orderDAO.getOrderById(orderId);
 
+        ProductDAO productDAO = new ProductDAO();
+
         request.setAttribute("order", order);
+        request.setAttribute("productList", productDAO.selectAllProducts());
 
         RequestDispatcher dispatcher
                 = request.getRequestDispatcher("/pages/order/edit-order.jsp");
@@ -173,12 +185,7 @@ public class OrderServlet extends HttpServlet {
     private void insertOrder(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, IOException {
 
-        String supplierName = request.getParameter("supplierName").trim();
-        String items = request.getParameter("items").trim();
-        double totalAmount = Double.parseDouble(request.getParameter("totalAmount"));
-        String status = request.getParameter("status");
-
-        Order order = new Order(0, supplierName, items, totalAmount, null, status);
+        Order order = buildOrderFromRequest(request, 0);
 
         orderDAO.insertOrder(order);
 
@@ -190,17 +197,106 @@ public class OrderServlet extends HttpServlet {
             throws SQLException, IOException {
 
         int orderId = Integer.parseInt(request.getParameter("orderId"));
-        String supplierName = request.getParameter("supplierName").trim();
-        String items = request.getParameter("items").trim();
-        double totalAmount = Double.parseDouble(request.getParameter("totalAmount"));
-        String status = request.getParameter("status");
 
-        Order order = new Order(orderId, supplierName, items, totalAmount, null, status);
+        // Get old order BEFORE update
+        Order oldOrder = orderDAO.getOrderById(orderId);
 
-        orderDAO.updateOrder(order);
+        // Build updated order
+        Order updatedOrder = buildOrderFromRequest(request, orderId);
+
+        // Update order first
+        orderDAO.updateOrder(updatedOrder);
+
+        /*
+        AUTOMATIC STOCK UPDATE
+        Only add stock when:
+        old status != Completed
+        AND
+        new status == Completed
+         */
+        if (!"Completed".equalsIgnoreCase(oldOrder.getStatus())
+                && "Completed".equalsIgnoreCase(updatedOrder.getStatus())) {
+
+            ProductDAO productDAO = new ProductDAO();
+
+            for (OrderItem item : updatedOrder.getOrderItems()) {
+
+                productDAO.increaseStockByProductId(
+                        item.getProductId(),
+                        item.getQuantity()
+                );
+            }
+        }
 
         response.sendRedirect(request.getContextPath()
                 + "/OrderServlet?action=list&success=updated");
+    }
+
+    private Order buildOrderFromRequest(HttpServletRequest request, int orderId) {
+
+        String supplierName = request.getParameter("supplierName").trim();
+        String status = request.getParameter("status");
+
+        String[] productIds = request.getParameterValues("productId");
+        String[] itemNames = request.getParameterValues("itemName");
+        String[] quantities = request.getParameterValues("quantity");
+        String[] unitPrices = request.getParameterValues("unitPrice");
+
+        List<OrderItem> orderItems = new ArrayList<>();
+
+        double totalAmount = 0;
+        StringBuilder itemSummary = new StringBuilder();
+
+        for (int i = 0; i < itemNames.length; i++) {
+
+            String itemName = itemNames[i].trim();
+
+            if (itemName.isEmpty()) {
+                continue;
+            }
+
+            int productId = Integer.parseInt(productIds[i]);
+
+            int quantity = Integer.parseInt(quantities[i]);
+
+            double unitPrice = Double.parseDouble(unitPrices[i]);
+
+            double subtotal = quantity * unitPrice;
+
+            totalAmount += subtotal;
+
+            orderItems.add(
+                    new OrderItem(
+                            0,
+                            orderId,
+                            productId,
+                            itemName,
+                            quantity,
+                            unitPrice,
+                            subtotal
+                    )
+            );
+
+            itemSummary.append(itemName)
+                    .append(" x ")
+                    .append(quantity)
+                    .append(" = RM ")
+                    .append(String.format("%.2f", subtotal))
+                    .append("\n");
+        }
+
+        Order order = new Order(
+                orderId,
+                supplierName,
+                itemSummary.toString(),
+                totalAmount,
+                null,
+                status
+        );
+
+        order.setOrderItems(orderItems);
+
+        return order;
     }
 
     private void deleteOrder(HttpServletRequest request, HttpServletResponse response)

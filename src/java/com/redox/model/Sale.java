@@ -7,6 +7,9 @@ public class Sale {
     private String saleId;
     private Date saleDate;
     private double totalAmount;
+    private String paymentMethod;
+    private double cashReceived;
+    private double changeAmount;
 
     public Sale() {
     }
@@ -39,5 +42,29 @@ public class Sale {
 
     public void setTotalAmount(double totalAmount) {
         this.totalAmount = totalAmount;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public double getCashReceived() {
+        return cashReceived;
+    }
+
+    public void setCashReceived(double cashReceived) {
+        this.cashReceived = cashReceived;
+    }
+
+    public double getChangeAmount() {
+        return changeAmount;
+    }
+
+    public void setChangeAmount(double changeAmount) {
+        this.changeAmount = changeAmount;
     }
 }

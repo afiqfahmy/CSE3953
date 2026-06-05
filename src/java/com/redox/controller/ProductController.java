@@ -158,7 +158,9 @@ public class ProductController extends HttpServlet {
     }
 
     private void showAddForm(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws SQLException, ServletException, IOException {
+
+        request.setAttribute("orderedItemList", productDAO.getCompletedOrderItemsForProduct());
 
         RequestDispatcher dispatcher
                 = request.getRequestDispatcher("/pages/staff/addProduct.jsp");
@@ -170,9 +172,11 @@ public class ProductController extends HttpServlet {
             throws SQLException, ServletException, IOException {
 
         int productId = Integer.parseInt(request.getParameter("id"));
+
         Product product = productDAO.selectProduct(productId);
 
         request.setAttribute("product", product);
+        request.setAttribute("supplierList", productDAO.getSupplierNames());
 
         RequestDispatcher dispatcher
                 = request.getRequestDispatcher("/pages/staff/editProduct.jsp");
@@ -184,6 +188,7 @@ public class ProductController extends HttpServlet {
             throws SQLException, ServletException, IOException {
 
         int productId = Integer.parseInt(request.getParameter("id"));
+
         Product product = productDAO.selectProduct(productId);
 
         request.setAttribute("product", product);
@@ -198,6 +203,7 @@ public class ProductController extends HttpServlet {
             throws SQLException, IOException {
 
         Product product = extractProductFromRequest(request, 0);
+
         productDAO.insertProduct(product);
 
         response.sendRedirect(request.getContextPath()
@@ -208,6 +214,7 @@ public class ProductController extends HttpServlet {
             throws SQLException, IOException {
 
         int productId = Integer.parseInt(request.getParameter("productId"));
+
         Product product = extractProductFromRequest(request, productId);
 
         productDAO.updateProduct(product);
@@ -220,6 +227,7 @@ public class ProductController extends HttpServlet {
             throws SQLException, IOException {
 
         int productId = Integer.parseInt(request.getParameter("id"));
+
         productDAO.deleteProduct(productId);
 
         response.sendRedirect(request.getContextPath()
@@ -227,16 +235,39 @@ public class ProductController extends HttpServlet {
     }
 
     private Product extractProductFromRequest(HttpServletRequest request, int productId) {
+
         String productName = request.getParameter("productName").trim();
         String category = request.getParameter("category").trim();
+
         double unitPrice = Double.parseDouble(request.getParameter("unitPrice"));
         int quantity = Integer.parseInt(request.getParameter("quantity"));
         int threshold = Integer.parseInt(request.getParameter("threshold"));
 
-        return new Product(productId, productName, category, unitPrice, quantity, threshold);
+        String expiryDate = request.getParameter("expiryDate");
+        String supplierName = request.getParameter("supplierName");
+
+        if (expiryDate != null) {
+            expiryDate = expiryDate.trim();
+        }
+
+        if (supplierName != null) {
+            supplierName = supplierName.trim();
+        }
+
+        return new Product(
+                productId,
+                productName,
+                category,
+                unitPrice,
+                quantity,
+                threshold,
+                expiryDate,
+                supplierName
+        );
     }
 
     private boolean canManageProduct(HttpServletRequest request) {
+
         HttpSession session = request.getSession(false);
 
         if (session == null || session.getAttribute("user") == null) {
@@ -249,6 +280,7 @@ public class ProductController extends HttpServlet {
     }
 
     private boolean canDeleteProduct(HttpServletRequest request) {
+
         HttpSession session = request.getSession(false);
 
         if (session == null || session.getAttribute("user") == null) {

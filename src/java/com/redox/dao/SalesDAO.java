@@ -17,13 +17,18 @@ public class SalesDAO {
             conn.setAutoCommit(false);
 
             String insertSaleSql
-                    = "INSERT INTO sales (sale_id, total_amount, receipt_data) VALUES (?, ?, ?)";
+                    = "INSERT INTO sales "
+                    + "(sale_id, total_amount, receipt_data, payment_method, cash_received, change_amount) "
+                    + "VALUES (?, ?, ?, ?, ?, ?)";
 
             try (PreparedStatement psSale = conn.prepareStatement(insertSaleSql)) {
                 psSale.setString(1, sale.getSaleId());
                 psSale.setDouble(2, sale.getTotalAmount());
                 psSale.setString(3, cartData);
-                psSale.executeUpdate();
+
+                psSale.setString(4, sale.getPaymentMethod());
+                psSale.setDouble(5, sale.getCashReceived());
+                psSale.setDouble(6, sale.getChangeAmount());
             }
 
             String updateStockSql
@@ -106,7 +111,7 @@ public class SalesDAO {
     }
 
     public String[] getPastReceiptData(String saleId) {
-        String[] result = new String[3];
+        String[] result = new String[6];
 
         String sql = "SELECT sale_date, total_amount, receipt_data FROM sales WHERE sale_id = ?";
 
@@ -119,6 +124,10 @@ public class SalesDAO {
                     result[0] = rs.getTimestamp("sale_date").toString();
                     result[1] = String.valueOf(rs.getDouble("total_amount"));
                     result[2] = rs.getString("receipt_data");
+
+                    result[3] = rs.getString("payment_method");
+                    result[4] = String.valueOf(rs.getDouble("cash_received"));
+                    result[5] = String.valueOf(rs.getDouble("change_amount"));
                 }
             }
 
@@ -156,5 +165,99 @@ public class SalesDAO {
         }
 
         return value;
+    }
+
+    public double getTodayRevenue() {
+
+        double revenue = 0;
+
+        String sql
+                = "SELECT COALESCE(SUM(total_amount),0) AS revenue "
+                + "FROM sales "
+                + "WHERE DATE(sale_date) = CURDATE()";
+
+        try (
+                Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                revenue = rs.getDouble("revenue");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return revenue;
+    }
+
+    public int getTodayTransactionCount() {
+
+        int count = 0;
+
+        String sql
+                = "SELECT COUNT(*) AS total "
+                + "FROM sales "
+                + "WHERE DATE(sale_date)=CURDATE()";
+
+        try (
+                Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                count = rs.getInt("total");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return count;
+    }
+
+    public double getTodayCashSales() {
+
+        double amount = 0;
+
+        String sql
+                = "SELECT COALESCE(SUM(total_amount),0) AS total "
+                + "FROM sales "
+                + "WHERE payment_method='Cash' "
+                + "AND DATE(sale_date)=CURDATE()";
+
+        try (
+                Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                amount = rs.getDouble("total");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return amount;
+    }
+
+    public double getTodayQrSales() {
+
+        double amount = 0;
+
+        String sql
+                = "SELECT COALESCE(SUM(total_amount),0) AS total "
+                + "FROM sales "
+                + "WHERE payment_method='QR' "
+                + "AND DATE(sale_date)=CURDATE()";
+
+        try (
+                Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                amount = rs.getDouble("total");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return amount;
     }
 }

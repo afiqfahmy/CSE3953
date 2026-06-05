@@ -110,6 +110,10 @@
                         <input type="hidden" name="cartData" id="cartData">
                         <input type="hidden" name="grandTotal" id="grandTotal">
 
+                        <input type="hidden" name="paymentMethod" id="paymentMethod">
+                        <input type="hidden" name="cashReceived" id="cashReceived">
+                        <input type="hidden" name="changeAmount" id="changeAmount">
+
                         <button type="button"
                                 onclick="checkout()"
 
@@ -217,10 +221,207 @@
                     return;
                 }
 
-                document.forms[0].submit();
+                document.getElementById("paymentTotal").innerText =
+                        document.getElementById("totalDisplay").innerText;
+
+                document.getElementById("cashInput").value = "";
+
+                document.getElementById("changeDisplay").innerText =
+                        "RM0.00";
+
+                document.getElementById("paymentType").value = "Cash";
+                document.getElementById("cashSection").style.display = "block";
+
+                document.getElementById("paymentModal")
+                        .classList.remove("hidden");
             }
 
+            function closePaymentModal() {
+
+                document.getElementById("paymentModal")
+                        .classList.add("hidden");
+            }
+
+            function toggleCashInput() {
+
+                const method =
+                        document.getElementById("paymentType").value;
+
+                const cashSection =
+                        document.getElementById("cashSection");
+
+                if (method === "QR") {
+
+                    cashSection.style.display = "none";
+
+                    document.getElementById("changeDisplay")
+                            .innerText = "RM0.00";
+
+                } else {
+
+                    cashSection.style.display = "block";
+                }
+            }
+
+            function calculateChange() {
+
+                const total =
+                        parseFloat(
+                                document.getElementById("grandTotal").value
+                                );
+
+                const cash =
+                        parseFloat(
+                                document.getElementById("cashInput").value
+                                ) || 0;
+
+                const change = cash - total;
+
+                document.getElementById("changeDisplay").innerText =
+                        "RM" + Math.max(change, 0).toFixed(2);
+            }
+
+            function confirmPayment() {
+
+                const total =
+                        parseFloat(
+                                document.getElementById("grandTotal").value
+                                );
+
+                const method =
+                        document.getElementById("paymentType").value;
+
+                let cashReceived = total;
+                let change = 0;
+
+                if (method === "Cash") {
+
+                    cashReceived =
+                            parseFloat(
+                                    document.getElementById("cashInput").value
+                                    );
+
+                    if (isNaN(cashReceived)) {
+
+                        alert("Enter cash received.");
+
+                        return;
+                    }
+
+                    if (cashReceived < total) {
+
+                        alert("Insufficient cash.");
+
+                        return;
+                    }
+
+                    change = cashReceived - total;
+                }
+
+                document.getElementById("paymentMethod").value =
+                        method;
+
+                document.getElementById("cashReceived").value =
+                        cashReceived;
+
+                document.getElementById("changeAmount").value =
+                        change;
+
+                document.forms[0].submit();
+            }
         </script>
+
+        <div id="paymentModal"
+             class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+
+            <div class="bg-white rounded-2xl p-6 w-96">
+
+                <h2 class="text-2xl font-bold mb-5">
+                    Payment
+                </h2>
+
+                <!-- Total Amount -->
+                <div class="mb-4">
+
+                    <label class="font-semibold">
+                        Total Amount
+                    </label>
+
+                    <p id="paymentTotal"
+                       class="text-3xl font-bold text-green-600 mt-1">
+                        RM0.00
+                    </p>
+
+                </div>
+
+                <!-- Payment Method -->
+                <div class="mb-4">
+
+                    <label class="font-semibold">
+                        Payment Method
+                    </label>
+
+                    <select id="paymentType"
+                            onchange="toggleCashInput()"
+                            class="w-full border rounded-lg p-2 mt-2">
+
+                        <option value="Cash">Cash</option>
+                        <option value="QR">QR</option>
+
+                    </select>
+
+                </div>
+
+                <!-- Cash Section -->
+                <div id="cashSection" class="mb-4">
+
+                    <label class="font-semibold">
+                        Cash Received
+                    </label>
+
+                    <input type="number"
+                           step="0.01"
+                           id="cashInput"
+                           oninput="calculateChange()"
+                           class="w-full border rounded-lg p-2 mt-2">
+
+                </div>
+
+                <!-- Change -->
+                <div class="mt-4">
+
+                    <p class="font-bold text-lg">
+                        Change:
+                        <span id="changeDisplay"
+                              class="text-green-600">
+                            RM0.00
+                        </span>
+                    </p>
+
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex gap-3 mt-6">
+
+                    <button onclick="closePaymentModal()"
+                            class="flex-1 bg-gray-300 hover:bg-gray-400 py-2 rounded-lg">
+
+                        Cancel
+
+                    </button>
+
+                    <button onclick="confirmPayment()"
+                            class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg">
+
+                        Confirm
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
 
     </body>
 </html>
