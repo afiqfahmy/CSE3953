@@ -1,7 +1,18 @@
+<%@ page import="com.redox.model.User" %>
+
 <%
     String active = request.getParameter("active");
+
     if (active == null) {
         active = "";
+    }
+
+    User user = (User) session.getAttribute("user");
+
+    int roleId = 0;
+
+    if (user != null) {
+        roleId = user.getRoleId();
     }
 
     String activeClass = "flex items-center gap-3 bg-blue-600 text-white rounded-xl px-4 py-3 font-semibold shadow-sm";
@@ -12,6 +23,7 @@
 
     <div class="mb-8">
         <div class="flex items-center gap-3">
+
             <div class="w-11 h-11 rounded-xl bg-white flex items-center justify-center shadow-sm">
                 <img src="${pageContext.request.contextPath}/assets/images/Logo_Rasmi_UMT.png"
                      alt="Redox RX Logo"
@@ -19,42 +31,94 @@
             </div>
 
             <div>
-                <h1 class="text-white text-lg font-bold leading-tight">Redox RX</h1>
-                <p class="text-blue-200 text-xs leading-tight">Inventory System</p>
+                <h1 class="text-white text-lg font-bold leading-tight">
+                    Redox RX
+                </h1>
+
+                <p class="text-blue-200 text-xs leading-tight">
+                    Inventory System
+                </p>
             </div>
+
         </div>
     </div>
 
     <nav class="flex-1 space-y-2">
 
+        <!-- STAFF ONLY -->
+        <% if (roleId == 1) {%>
+
         <a class="<%= "product".equals(active) ? activeClass : inactiveClass%>"
            href="${pageContext.request.contextPath}/ProductController?action=list">
-            <span class="material-symbols-outlined text-[21px]">inventory_2</span>
-            <span class="text-sm">Manage Products</span>
+
+            <span class="material-symbols-outlined text-[21px]">
+                inventory_2
+            </span>
+
+            <span class="text-sm">
+                Manage Products
+            </span>
+
         </a>
 
         <a class="<%= "order".equals(active) ? activeClass : inactiveClass%>"
            href="${pageContext.request.contextPath}/OrderServlet?action=list">
-            <span class="material-symbols-outlined text-[21px]">receipt_long</span>
-            <span class="text-sm">Manage Orders</span>
-        </a>
 
-        <a class="<%= "report".equals(active) ? activeClass : inactiveClass%>"
-           href="${pageContext.request.contextPath}/OrderServlet?action=report">
-            <span class="material-symbols-outlined text-[21px]">bar_chart</span>
-            <span class="text-sm">Order Report</span>
+            <span class="material-symbols-outlined text-[21px]">
+                receipt_long
+            </span>
+
+            <span class="text-sm">
+                Manage Orders
+            </span>
+
         </a>
 
         <a class="<%= "sales".equals(active) ? activeClass : inactiveClass%>"
            href="${pageContext.request.contextPath}/pages/sales/sales.jsp">
-            <span class="material-symbols-outlined text-[21px]">point_of_sale</span>
-            <span class="text-sm">Sales</span>
+
+            <span class="material-symbols-outlined text-[21px]">
+                point_of_sale
+            </span>
+
+            <span class="text-sm">
+                Sales
+            </span>
+
         </a>
+
+        <% }%>
+
+        <!-- STAFF + MANAGER -->
 
         <a class="<%= "history".equals(active) ? activeClass : inactiveClass%>"
            href="${pageContext.request.contextPath}/pages/sales/history.jsp">
-            <span class="material-symbols-outlined text-[21px]">history</span>
-            <span class="text-sm">Sales History</span>
+
+            <span class="material-symbols-outlined text-[21px]">
+                history
+            </span>
+
+            <span class="text-sm">
+                Transaction History
+            </span>
+
+        </a>
+
+        <!-- MANAGER ONLY -->
+
+        <% if (roleId == 2) {%>
+
+        <a class="<%= "report".equals(active) ? activeClass : inactiveClass%>"
+           href="${pageContext.request.contextPath}/OrderServlet?action=report">
+
+            <span class="material-symbols-outlined text-[21px]">
+                bar_chart
+            </span>
+
+            <span class="text-sm">
+                Order Report
+            </span>
+
         </a>
 
         <a class="<%= "dailyreport".equals(active) ? activeClass : inactiveClass%>"
@@ -70,14 +134,32 @@
 
         </a>
 
+        <% }%>
+
     </nav>
 
     <div class="pt-5 border-t border-white/10">
+
+        <div class="px-4 py-2 text-xs text-blue-200">
+            Logged in as:
+            <strong>
+                <%= roleId == 2 ? "MANAGER" : "STAFF"%>
+            </strong>
+        </div>
+
         <a href="${pageContext.request.contextPath}/LogoutController"
            class="flex items-center gap-3 text-red-300 hover:text-white hover:bg-red-500/20 rounded-xl px-4 py-3 transition-all">
-            <span class="material-symbols-outlined text-[21px]">logout</span>
-            <span class="text-sm font-medium">Logout</span>
+
+            <span class="material-symbols-outlined text-[21px]">
+                logout
+            </span>
+
+            <span class="text-sm font-medium">
+                Logout
+            </span>
+
         </a>
+
     </div>
 
 </aside>

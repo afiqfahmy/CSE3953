@@ -43,23 +43,25 @@
 
                             <div>
                                 <c:choose>
-                                    <c:when test="${product.stockStatus == 'Out of Stock'}">
-                                        <span class="bg-slate-100 text-slate-700 px-4 py-2 rounded-full text-sm font-bold">
-                                            Out of Stock
+
+                                    <c:when test="${product.status == 'OUT_OF_STOCK'}">
+                                        <span class="bg-red-100 text-red-700 px-4 py-2 rounded-full text-sm font-bold">
+                                            OUT OF STOCK
                                         </span>
                                     </c:when>
 
-                                    <c:when test="${product.lowStock}">
-                                        <span class="bg-red-100 text-red-700 px-4 py-2 rounded-full text-sm font-bold">
-                                            Low Stock
+                                    <c:when test="${product.status == 'UNLISTED'}">
+                                        <span class="bg-slate-200 text-slate-700 px-4 py-2 rounded-full text-sm font-bold">
+                                            UNLISTED
                                         </span>
                                     </c:when>
 
                                     <c:otherwise>
                                         <span class="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-bold">
-                                            In Stock
+                                            IN STOCK
                                         </span>
                                     </c:otherwise>
+
                                 </c:choose>
                             </div>
 
@@ -109,8 +111,8 @@
                         </div>
 
                         <div class="bg-slate-50 rounded-2xl p-5">
-                            <p class="text-slate-500 text-sm">Stock Status</p>
-                            <h3 class="text-xl font-bold text-slate-800">${product.stockStatus}</h3>
+                            <p class="text-slate-500 text-sm">Product Status</p>
+                            <h3 class="text-xl font-bold text-slate-800">${product.status}</h3>
                         </div>
 
                     </div>
@@ -122,21 +124,13 @@
                             Edit Product
                         </a>
 
-                        <form method="POST"
-                              action="${pageContext.request.contextPath}/ProductController">
+                        <a href="${pageContext.request.contextPath}/ProductController?action=status&id=${product.productId}"
+                           class="px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-semibold shadow">
 
-                            <input type="hidden" name="action" value="delete">
-                            <input type="hidden" name="id" value="${product.productId}">
+                            Set Status
 
-                            <button onclick="return confirm('Delete this product?')"
-                                    class="px-5 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold shadow">
-                                Delete Product
-                            </button>
-
-                        </form>
-
+                        </a>
                     </div>
-
                 </div>
 
             </div>

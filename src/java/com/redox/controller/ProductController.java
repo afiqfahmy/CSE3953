@@ -101,6 +101,10 @@ public class ProductController extends HttpServlet {
                     viewProduct(request, response);
                     break;
 
+                case "status":
+                    toggleStatus(request, response);
+                    break;
+
                 case "list":
                 default:
                     listProducts(request, response);
@@ -135,12 +139,19 @@ public class ProductController extends HttpServlet {
         int totalProducts = productList.size();
         int lowStockCount = 0;
         int totalQuantity = 0;
+        int expiringCount = 0;
 
         for (Product product : productList) {
+
             totalQuantity += product.getQuantity();
 
             if (product.isLowStock()) {
                 lowStockCount++;
+            }
+
+            if ("Expiring Soon".equals(product.getExpiryStatus())
+                    || "Expired".equals(product.getExpiryStatus())) {
+                expiringCount++;
             }
         }
 
@@ -148,6 +159,7 @@ public class ProductController extends HttpServlet {
         request.setAttribute("totalProducts", totalProducts);
         request.setAttribute("lowStockCount", lowStockCount);
         request.setAttribute("totalQuantity", totalQuantity);
+        request.setAttribute("expiringCount", expiringCount);
         request.setAttribute("keyword", keyword);
         request.setAttribute("category", category);
 
@@ -199,6 +211,36 @@ public class ProductController extends HttpServlet {
         dispatcher.forward(request, response);
     }
 
+    private void toggleStatus(HttpServletRequest request,
+            HttpServletResponse response)
+            throws SQLException, IOException {
+
+        int productId = Integer.parseInt(request.getParameter("id"));
+
+        Product product = productDAO.selectProduct(productId);
+
+        System.out.println("CURRENT STATUS = " + product.getStatus());
+
+        String nextStatus;
+
+        if ("IN_STOCK".equals(product.getStatus())) {
+            nextStatus = "OUT_OF_STOCK";
+        } else if ("OUT_OF_STOCK".equals(product.getStatus())) {
+            nextStatus = "UNLISTED";
+        } else {
+            nextStatus = "IN_STOCK";
+        }
+
+        System.out.println("NEW STATUS = " + nextStatus);
+
+        productDAO.updateStatus(productId, nextStatus);
+
+        response.sendRedirect(
+                request.getContextPath()
+                + "/ProductController?action=view&id="
+                + productId);
+    }
+
     private void insertProduct(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, IOException {
 
@@ -206,7 +248,12 @@ public class ProductController extends HttpServlet {
 
         productDAO.insertProduct(product);
 
-        response.sendRedirect(request.getContextPath()
+        productDAO.markOrderItemAsCreated(
+                product.getProductName()
+        );
+
+        response.sendRedirect(
+                request.getContextPath()
                 + "/ProductController?action=list&success=added");
     }
 
@@ -254,6 +301,12 @@ public class ProductController extends HttpServlet {
             supplierName = supplierName.trim();
         }
 
+        String status = request.getParameter("status");
+
+        if (status == null || status.trim().isEmpty()) {
+            status = "IN_STOCK";
+        }
+
         return new Product(
                 productId,
                 productName,
@@ -262,7 +315,8 @@ public class ProductController extends HttpServlet {
                 quantity,
                 threshold,
                 expiryDate,
-                supplierName
+                supplierName,
+                status
         );
     }
 
@@ -276,19 +330,11 @@ public class ProductController extends HttpServlet {
 
         User user = (User) session.getAttribute("user");
 
-        return user.getRoleId() == 1 || user.getRoleId() == 2;
+        // STAFF ONLY
+        return user.getRoleId() == 1;
     }
 
     private boolean canDeleteProduct(HttpServletRequest request) {
-
-        HttpSession session = request.getSession(false);
-
-        if (session == null || session.getAttribute("user") == null) {
-            return false;
-        }
-
-        User user = (User) session.getAttribute("user");
-
-        return user.getRoleId() == 2;
+        return false;
     }
 }

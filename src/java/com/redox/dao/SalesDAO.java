@@ -22,6 +22,7 @@ public class SalesDAO {
                     + "VALUES (?, ?, ?, ?, ?, ?)";
 
             try (PreparedStatement psSale = conn.prepareStatement(insertSaleSql)) {
+
                 psSale.setString(1, sale.getSaleId());
                 psSale.setDouble(2, sale.getTotalAmount());
                 psSale.setString(3, cartData);
@@ -29,6 +30,8 @@ public class SalesDAO {
                 psSale.setString(4, sale.getPaymentMethod());
                 psSale.setDouble(5, sale.getCashReceived());
                 psSale.setDouble(6, sale.getChangeAmount());
+
+                psSale.executeUpdate();   // <-- THIS IS MISSING
             }
 
             String updateStockSql
@@ -73,6 +76,19 @@ public class SalesDAO {
                                 conn.rollback();
                                 return false;
                             }
+
+                            String updateStatusSql
+                                    = "UPDATE products "
+                                    + "SET status = 'OUT_OF_STOCK' "
+                                    + "WHERE product_id = ? "
+                                    + "AND quantity <= 0";
+
+                            try (PreparedStatement psStatus
+                                    = conn.prepareStatement(updateStatusSql)) {
+
+                                psStatus.setInt(1, productId);
+                                psStatus.executeUpdate();
+                            }
                         }
                     }
                 }
@@ -113,7 +129,11 @@ public class SalesDAO {
     public String[] getPastReceiptData(String saleId) {
         String[] result = new String[6];
 
-        String sql = "SELECT sale_date, total_amount, receipt_data FROM sales WHERE sale_id = ?";
+        String sql
+                = "SELECT sale_date, total_amount, receipt_data, "
+                + "payment_method, cash_received, change_amount "
+                + "FROM sales "
+                + "WHERE sale_id = ?";
 
         try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -173,8 +193,7 @@ public class SalesDAO {
 
         String sql
                 = "SELECT COALESCE(SUM(total_amount),0) AS revenue "
-                + "FROM sales "
-                + "WHERE DATE(sale_date) = CURDATE()";
+                + "FROM sales";
 
         try (
                 Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
@@ -196,8 +215,7 @@ public class SalesDAO {
 
         String sql
                 = "SELECT COUNT(*) AS total "
-                + "FROM sales "
-                + "WHERE DATE(sale_date)=CURDATE()";
+                + "FROM sales";
 
         try (
                 Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
@@ -220,8 +238,7 @@ public class SalesDAO {
         String sql
                 = "SELECT COALESCE(SUM(total_amount),0) AS total "
                 + "FROM sales "
-                + "WHERE payment_method='Cash' "
-                + "AND DATE(sale_date)=CURDATE()";
+                + "WHERE payment_method = 'Cash'";
 
         try (
                 Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
@@ -244,8 +261,7 @@ public class SalesDAO {
         String sql
                 = "SELECT COALESCE(SUM(total_amount),0) AS total "
                 + "FROM sales "
-                + "WHERE payment_method='QR' "
-                + "AND DATE(sale_date)=CURDATE()";
+                + "WHERE payment_method = 'QR'";
 
         try (
                 Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {

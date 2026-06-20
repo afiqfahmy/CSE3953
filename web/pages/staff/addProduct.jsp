@@ -51,8 +51,45 @@
 
                     <input type="hidden" name="action" value="insert">
 
-                    <!-- ORDER ITEM -->
+                    <!-- SUPPLIER -->
 
+                    <div>
+
+                        <label class="block text-sm font-bold text-slate-700 mb-2">
+                            Supplier
+                        </label>
+
+                        <select id="supplierSelect"
+                                onchange="filterItems()"
+                                class="w-full border rounded-2xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
+
+                            <option value="">Select supplier</option>
+
+                            <%
+                                java.util.Set<String> suppliers = new java.util.HashSet<>();
+
+                                if (orderedItemList != null) {
+                                    for (OrderedItemSource item : orderedItemList) {
+
+                                        if (!suppliers.contains(item.getSupplierName())) {
+                                            suppliers.add(item.getSupplierName());
+                            %>
+
+                            <option value="<%= item.getSupplierName()%>">
+                                <%= item.getSupplierName()%>
+                            </option>
+
+                            <%
+                                        }
+                                    }
+                                }
+                            %>
+
+                        </select>
+
+                    </div>
+
+                    <!-- ORDER ITEM -->
                     <div>
 
                         <label class="block text-sm font-bold text-slate-700 mb-2">
@@ -60,7 +97,8 @@
                         </label>
 
                         <select id="orderedItemSelect"
-                                onchange="fillOrderData(this)"
+                                name="productName"
+                                onchange="fillOrderData()"
                                 class="w-full border rounded-2xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
 
                             <option value="">Select ordered item</option>
@@ -72,11 +110,12 @@
 
                             <option
                                 value="<%= item.getItemName()%>"
+                                data-name="<%= item.getItemName()%>"
                                 data-supplier="<%= item.getSupplierName()%>"
                                 data-quantity="<%= item.getQuantity()%>"
-                                data-supplierprice="<%= item.getSupplierPrice()%>">
+                                data-price="<%= item.getSupplierPrice()%>">
 
-                                <%= item.getItemName()%> - Supplier: <%= item.getSupplierName()%>
+                                <%= item.getItemName()%>
 
                             </option>
 
@@ -86,23 +125,6 @@
                             %>
 
                         </select>
-
-                    </div>
-
-                    <!-- PRODUCT NAME -->
-
-                    <div>
-
-                        <label class="block text-sm font-bold text-slate-700 mb-2">
-                            Product Name
-                        </label>
-
-                        <input type="text"
-                               id="productName"
-                               name="productName"
-                               required
-                               placeholder="Example: MAGGI 2-Minit Kari"
-                               class="w-full border rounded-2xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
 
                     </div>
 
@@ -176,7 +198,7 @@
                             <input type="number"
                                    step="0.01"
                                    min="0"
-                                   name="sellingPrice"
+                                   name="unitPrice"
                                    required
                                    placeholder="0.00"
                                    class="w-full border rounded-2xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
@@ -257,24 +279,60 @@
 
         <script>
 
-            function fillOrderData(selectElement) {
+            function filterItems() {
 
-                const option = selectElement.options[selectElement.selectedIndex];
+                const supplier =
+                        document.getElementById("supplierSelect").value;
 
-                document.getElementById("productName").value
-                        = option.value || "";
+                const itemSelect =
+                        document.getElementById("orderedItemSelect");
 
-                document.getElementById("supplierName").value
-                        = option.getAttribute("data-supplier") || "";
+                for (let i = 1; i < itemSelect.options.length; i++) {
 
-                document.getElementById("quantity").value
-                        = option.getAttribute("data-quantity") || "";
+                    const option = itemSelect.options[i];
 
-                document.getElementById("supplierPrice").value
-                        = option.getAttribute("data-supplierprice") || "";
+                    if (
+                            supplier === ""
+                            || option.getAttribute("data-supplier") === supplier
+                            ) {
+
+                        option.style.display = "";
+
+                    } else {
+
+                        option.style.display = "none";
+                    }
+                }
+
+                itemSelect.selectedIndex = 0;
+
+                document.getElementById("supplierName").value = "";
+                document.getElementById("quantity").value = "";
+                document.getElementById("supplierPrice").value = "";
+            }
+
+            function fillOrderData() {
+
+                const selected =
+                        document.getElementById("orderedItemSelect");
+
+                const option =
+                        selected.options[selected.selectedIndex];
+
+                if (selected.selectedIndex === 0) {
+                    return;
+                }
+
+                document.getElementById("supplierName").value =
+                        option.getAttribute("data-supplier");
+
+                document.getElementById("quantity").value =
+                        option.getAttribute("data-quantity");
+
+                document.getElementById("supplierPrice").value =
+                        option.getAttribute("data-price");
             }
 
         </script>
-
     </body>
 </html>

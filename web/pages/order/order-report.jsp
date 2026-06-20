@@ -24,11 +24,6 @@
                         <h1 class="text-3xl font-bold text-slate-800">Order Report</h1>
                         <p class="text-slate-500">Summary of supplier order records</p>
                     </div>
-
-                    <a href="${pageContext.request.contextPath}/OrderServlet?action=list"
-                       class="bg-slate-200 px-5 py-3 rounded-xl font-semibold">
-                        Back to Orders
-                    </a>
                 </div>
 
                 <div class="grid grid-cols-4 gap-5 mb-8">

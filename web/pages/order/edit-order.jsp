@@ -71,7 +71,6 @@
                             <label class="block font-semibold mb-2">Status</label>
                             <select name="status" class="w-full border rounded-xl px-4 py-3">
                                 <option value="Pending" <%= "Pending".equals(order.getStatus()) ? "selected" : ""%>>Pending</option>
-                                <option value="Processing" <%= "Processing".equals(order.getStatus()) ? "selected" : ""%>>Processing</option>
                                 <option value="Completed" <%= "Completed".equals(order.getStatus()) ? "selected" : ""%>>Completed</option>
                             </select>
                         </div>

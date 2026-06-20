@@ -28,7 +28,7 @@
                         <p class="text-slate-500">Inventory management for Redox RX</p>
                     </div>
 
-                    <c:if test="${sessionScope.user.roleId == 1 || sessionScope.user.roleId == 2}">
+                    <c:if test="${sessionScope.user.roleId == 1}">
                         <a href="${pageContext.request.contextPath}/ProductController?action=add"
                            class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl font-semibold shadow-sm">
                             + Add Product
@@ -72,6 +72,13 @@
                     <div class="bg-white p-5 rounded-2xl shadow-sm">
                         <p class="text-slate-500 text-sm">Total Units</p>
                         <h2 class="text-3xl font-bold text-green-600">${totalQuantity}</h2>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-6 shadow-sm">
+                        <p class="text-slate-500">Expiring Soon</p>
+                        <h2 class="text-3xl font-bold text-yellow-600">
+                            ${expiringCount}
+                        </h2>
                     </div>
 
                 </div>
@@ -132,6 +139,7 @@
                                 <th class="text-left p-4">Selling Price</th>
                                 <th class="text-left p-4">Stock</th>
                                 <th class="text-left p-4">Expiry Date</th>
+                                <th class="px-4 py-3 text-left">Expiry Alert</th>
                                 <th class="text-left p-4">Status</th>
                                 <th class="text-right p-4">Action</th>
                             </tr>
@@ -200,36 +208,55 @@
 
                                             </td>
 
-                                            <td class="p-4">
+                                            <td class="px-4 py-3">
 
                                                 <c:choose>
 
-                                                    <c:when test="${p.stockStatus == 'Out of Stock'}">
-
-                                                        <span class="bg-slate-200 text-slate-700 px-3 py-1 rounded-full text-sm font-semibold">
-                                                            Out of Stock
+                                                    <c:when test="${p.expiryStatus == 'Expired'}">
+                                                        <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                                            Expired
                                                         </span>
-
                                                     </c:when>
 
-                                                    <c:when test="${p.lowStock}">
-
-                                                        <span class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-semibold">
-                                                            Low Stock
+                                                    <c:when test="${p.expiryStatus == 'Expiring Soon'}">
+                                                        <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                                            Expiring Soon
                                                         </span>
-
                                                     </c:when>
 
                                                     <c:otherwise>
-
-                                                        <span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm font-semibold">
-                                                            In Stock
+                                                        <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                                            Valid
                                                         </span>
-
                                                     </c:otherwise>
 
                                                 </c:choose>
 
+                                            </td>
+
+                                            <td class="p-4">
+
+                                                <c:choose>
+
+                                                    <c:when test="${p.status == 'OUT_OF_STOCK'}">
+                                                        <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                                            Out of Stock
+                                                        </span>
+                                                    </c:when>
+
+                                                    <c:when test="${p.status == 'UNLISTED'}">
+                                                        <span class="bg-slate-200 text-slate-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                                            Unlisted
+                                                        </span>
+                                                    </c:when>
+
+                                                    <c:otherwise>
+                                                        <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                                            In Stock
+                                                        </span>
+                                                    </c:otherwise>
+
+                                                </c:choose>
                                             </td>
 
                                             <td class="p-4">
@@ -240,35 +267,6 @@
                                                        class="text-slate-600 hover:text-slate-800 font-semibold text-sm">
                                                         View
                                                     </a>
-
-                                                    <c:if test="${sessionScope.user.roleId == 1 || sessionScope.user.roleId == 2}">
-
-                                                        <a href="${pageContext.request.contextPath}/ProductController?action=edit&id=${p.productId}"
-                                                           class="text-blue-600 hover:text-blue-700 font-semibold text-sm">
-                                                            Edit
-                                                        </a>
-
-                                                    </c:if>
-
-                                                    <c:if test="${sessionScope.user.roleId == 2}">
-
-                                                        <form method="POST"
-                                                              action="${pageContext.request.contextPath}/ProductController"
-                                                              class="inline">
-
-                                                            <input type="hidden" name="action" value="delete">
-                                                            <input type="hidden" name="id" value="${p.productId}">
-
-                                                            <button type="submit"
-                                                                    onclick="return confirm('Delete this product?')"
-                                                                    class="text-red-600 hover:text-red-700 font-semibold text-sm">
-                                                                Delete
-                                                            </button>
-
-                                                        </form>
-
-                                                    </c:if>
-
                                                 </div>
 
                                             </td>

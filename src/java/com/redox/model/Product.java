@@ -1,6 +1,8 @@
 package com.redox.model;
 
 import java.text.DecimalFormat;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
 public class Product {
 
@@ -12,12 +14,14 @@ public class Product {
     private int threshold;
     private String expiryDate;
     private String supplierName;
+    private String status;
 
     public Product() {
     }
 
-    public Product(int productId, String productName, String category, double unitPrice,
-            int quantity, int threshold, String expiryDate, String supplierName) {
+    public Product(int productId, String productName, String category,
+            double unitPrice, int quantity, int threshold,
+            String expiryDate, String supplierName, String status) {
         this.productId = productId;
         this.productName = productName;
         this.category = category;
@@ -26,6 +30,7 @@ public class Product {
         this.threshold = threshold;
         this.expiryDate = expiryDate;
         this.supplierName = supplierName;
+        this.status = status;
     }
 
     public boolean isLowStock() {
@@ -33,12 +38,19 @@ public class Product {
     }
 
     public String getStockStatus() {
+
         if (quantity <= 0) {
             return "Out of Stock";
         }
-        if (quantity <= threshold) {
+
+        if ("OUT_OF_STOCK".equalsIgnoreCase(status)) {
+            return "Out of Stock";
+        }
+
+        if (isLowStock()) {
             return "Low Stock";
         }
+
         return "In Stock";
     }
 
@@ -124,5 +136,41 @@ public class Product {
 
     public void setSupplierName(String supplierName) {
         this.supplierName = supplierName;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getExpiryStatus() {
+
+        if (expiryDate == null || expiryDate.trim().isEmpty()) {
+            return "No Date";
+        }
+
+        try {
+
+            LocalDate today = LocalDate.now();
+            LocalDate expiry = LocalDate.parse(expiryDate);
+
+            long daysLeft = ChronoUnit.DAYS.between(today, expiry);
+
+            if (daysLeft < 0) {
+                return "Expired";
+            }
+
+            if (daysLeft <= 30) {
+                return "Expiring Soon";
+            }
+
+            return "Valid";
+
+        } catch (Exception e) {
+            return "Unknown";
+        }
     }
 }

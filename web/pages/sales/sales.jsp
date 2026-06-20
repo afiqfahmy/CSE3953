@@ -25,6 +25,14 @@
                 <div class="mb-8">
                     <h1 class="text-3xl font-bold text-slate-800">Sales Menu</h1>
                     <p class="text-slate-500">Record customer purchases</p>
+
+                    <input
+                        type="text"
+                        id="productSearch"
+                        placeholder="Search product..."
+                        onkeyup="searchProducts()"
+                        class="mt-4 w-full p-3 border rounded-xl"
+                        >
                 </div>
 
                 <div class="grid grid-cols-3 gap-5">
@@ -32,7 +40,7 @@
                     <%
                         try (
                                 Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(
-                                "SELECT * FROM products WHERE quantity > 0"
+                                "SELECT * FROM products WHERE status = 'IN_STOCK' AND quantity > 0"
                         ); ResultSet rs = ps.executeQuery();) {
 
                             while (rs.next()) {
@@ -44,13 +52,16 @@
                     %>
 
                     <button
+                        data-name="<%= productName.toLowerCase()%>"
+
                         onclick="addToCart(
                         <%= productId%>,
                                         '<%= productName.replace("'", "\\'")%>',
-                        <%= unitPrice%>
+                        <%= unitPrice%>,
+                        <%= quantity%>
                                 )"
 
-                        class="bg-white rounded-2xl shadow-sm p-5 hover:shadow-md hover:-translate-y-1 transition text-left border border-slate-100">
+                        class="product-card bg-white rounded-2xl shadow-sm p-5 hover:shadow-md hover:-translate-y-1 transition text-left border border-slate-100">
 
                         <div class="flex justify-between items-start mb-5">
                             <div class="bg-blue-100 text-blue-600 p-3 rounded-xl">
@@ -132,13 +143,24 @@
 
             let cart = [];
 
-            function addToCart(productId, productName, unitPrice) {
+            function addToCart(productId, productName, unitPrice, stock) {
 
                 const existing = cart.find(
                         item => item.productId === productId
                 );
 
                 if (existing) {
+
+                    if (existing.quantity >= existing.stock) {
+
+                        alert(
+                                "Only "
+                                + existing.stock
+                                + " units available in stock."
+                                );
+
+                        return;
+                    }
 
                     existing.quantity++;
 
@@ -151,6 +173,7 @@
                         productId: productId,
                         productName: productName,
                         price: unitPrice,
+                        stock: stock,
                         quantity: 1,
                         total: unitPrice
                     });
@@ -180,7 +203,11 @@
                             '<div class="flex justify-between items-center mt-4">' +
                             '<div class="flex items-center gap-3">' +
                             '<button onclick="changeQty(' + index + ', -1)" class="bg-white border px-3 rounded-lg">-</button>' +
-                            '<span class="font-bold">' + item.quantity + '</span>' +
+                            '<input type="number" ' +
+                            'value="' + item.quantity + '" ' +
+                            'min="1" ' +
+                            'onchange="updateQty(' + index + ', this.value)" ' +
+                            'class="w-16 text-center border rounded-lg">' +
                             '<button onclick="changeQty(' + index + ', 1)" class="bg-white border px-3 rounded-lg">+</button>' +
                             '</div>' +
                             '<span class="font-bold text-blue-600">RM ' + item.total.toFixed(2) + '</span>' +
@@ -195,7 +222,20 @@
 
             function changeQty(index, amount) {
 
-                cart[index].quantity += amount;
+                let newQty = cart[index].quantity + amount;
+
+                if (newQty > cart[index].stock) {
+
+                    alert(
+                            "Only "
+                            + cart[index].stock
+                            + " units available in stock."
+                            );
+
+                    return;
+                }
+
+                cart[index].quantity = newQty;
 
                 if (cart[index].quantity <= 0) {
                     cart.splice(index, 1);
@@ -203,6 +243,33 @@
                     cart[index].total =
                             cart[index].quantity * cart[index].price;
                 }
+
+                renderCart();
+            }
+
+            function updateQty(index, value) {
+
+                let qty = parseInt(value);
+
+                if (isNaN(qty) || qty < 1) {
+                    qty = 1;
+                }
+
+                if (qty > cart[index].stock) {
+
+                    alert(
+                            "Only "
+                            + cart[index].stock
+                            + " units available in stock."
+                            );
+
+                    qty = cart[index].stock;
+                }
+
+                cart[index].quantity = qty;
+
+                cart[index].total =
+                        cart[index].quantity * cart[index].price;
 
                 renderCart();
             }
@@ -250,9 +317,13 @@
                 const cashSection =
                         document.getElementById("cashSection");
 
+                const qrSection =
+                        document.getElementById("qrSection");
+
                 if (method === "QR") {
 
                     cashSection.style.display = "none";
+                    qrSection.style.display = "block";
 
                     document.getElementById("changeDisplay")
                             .innerText = "RM0.00";
@@ -260,6 +331,7 @@
                 } else {
 
                     cashSection.style.display = "block";
+                    qrSection.style.display = "none";
                 }
             }
 
@@ -329,6 +401,32 @@
 
                 document.forms[0].submit();
             }
+
+            function searchProducts() {
+
+                let keyword =
+                        document.getElementById("productSearch")
+                        .value
+                        .toLowerCase();
+
+                let cards =
+                        document.querySelectorAll(".product-card");
+
+                cards.forEach(function (card) {
+
+                    let productName =
+                            card.getAttribute("data-name");
+
+                    if (productName.includes(keyword)) {
+
+                        card.style.display = "";
+
+                    } else {
+
+                        card.style.display = "none";
+                    }
+                });
+            }
         </script>
 
         <div id="paymentModal"
@@ -384,6 +482,21 @@
                            id="cashInput"
                            oninput="calculateChange()"
                            class="w-full border rounded-lg p-2 mt-2">
+
+                </div>
+
+                <div id="qrSection"
+                     style="display:none;"
+                     class="mt-4 text-center">
+
+                    <img
+                        src="${pageContext.request.contextPath}/assets/images/qr.jpeg"
+                        alt="QR Payment"
+                        class="mx-auto w-48 h-48 border rounded-lg">
+
+                    <p class="mt-2 text-sm text-gray-600">
+                        Scan this QR to complete payment
+                    </p>
 
                 </div>
 

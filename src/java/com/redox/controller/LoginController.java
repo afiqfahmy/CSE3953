@@ -31,7 +31,17 @@ public class LoginController extends HttpServlet {
                 HttpSession session = request.getSession();
                 session.setAttribute("user", user);
 
-                response.sendRedirect(request.getContextPath() + "/ProductController?action=list");
+                if (user.getRoleId() == 1) {
+                    response.sendRedirect(
+                            request.getContextPath()
+                            + "/ProductController?action=list"
+                    );
+                } else {
+                    response.sendRedirect(
+                            request.getContextPath()
+                            + "/OrderServlet?action=report"
+                    );
+                }
             } else {
                 response.sendRedirect(request.getContextPath() + "/pages/login/login.jsp?error=1");
             }

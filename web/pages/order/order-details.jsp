@@ -58,8 +58,6 @@
 
                                 if ("Completed".equalsIgnoreCase(status)) {
                                     badge = "bg-green-100 text-green-700";
-                                } else if ("Processing".equalsIgnoreCase(status)) {
-                                    badge = "bg-blue-100 text-blue-700";
                                 }
                             %>
 

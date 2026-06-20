@@ -5,6 +5,7 @@ import com.redox.model.Order;
 import com.redox.model.OrderItem;
 import com.redox.dao.ProductDAO;
 import com.redox.model.Product;
+import com.redox.model.User;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -48,7 +49,10 @@ public class OrderServlet extends HttpServlet {
                     break;
 
                 case "delete":
-                    deleteOrder(request, response);
+                    response.sendRedirect(
+                            request.getContextPath()
+                            + "/OrderServlet?action=list&error=unauthorized"
+                    );
                     break;
 
                 case "report":
@@ -91,6 +95,17 @@ public class OrderServlet extends HttpServlet {
     private void listOrders(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
 
+        HttpSession session = request.getSession(false);
+        User user = (User) session.getAttribute("user");
+
+        if (user.getRoleId() == 2) {
+            response.sendRedirect(
+                    request.getContextPath()
+                    + "/OrderServlet?action=report"
+            );
+            return;
+        }
+
         List<Order> orders = orderDAO.getAllOrders();
 
         request.setAttribute("orders", orders);
@@ -105,6 +120,15 @@ public class OrderServlet extends HttpServlet {
     private void showCreateForm(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
 
+        HttpSession session = request.getSession(false);
+        User user = (User) session.getAttribute("user");
+
+        if (user.getRoleId() == 2) {
+            response.sendRedirect(request.getContextPath()
+                    + "/OrderServlet?action=list");
+            return;
+        }
+
         ProductDAO productDAO = new ProductDAO();
 
         request.setAttribute("productList", productDAO.selectAllProducts());
@@ -117,6 +141,15 @@ public class OrderServlet extends HttpServlet {
 
     private void showEditForm(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
+
+        HttpSession session = request.getSession(false);
+        User user = (User) session.getAttribute("user");
+
+        if (user.getRoleId() == 2) {
+            response.sendRedirect(request.getContextPath()
+                    + "/OrderServlet?action=list");
+            return;
+        }
 
         int orderId = Integer.parseInt(request.getParameter("id"));
 
@@ -154,7 +187,6 @@ public class OrderServlet extends HttpServlet {
 
         double totalAmount = 0;
         int pendingCount = 0;
-        int processingCount = 0;
         int completedCount = 0;
 
         for (Order order : orders) {
@@ -162,8 +194,6 @@ public class OrderServlet extends HttpServlet {
 
             if ("Pending".equalsIgnoreCase(order.getStatus())) {
                 pendingCount++;
-            } else if ("Processing".equalsIgnoreCase(order.getStatus())) {
-                processingCount++;
             } else if ("Completed".equalsIgnoreCase(order.getStatus())) {
                 completedCount++;
             }
@@ -173,7 +203,6 @@ public class OrderServlet extends HttpServlet {
         request.setAttribute("totalOrders", orders.size());
         request.setAttribute("totalAmount", totalAmount);
         request.setAttribute("pendingCount", pendingCount);
-        request.setAttribute("processingCount", processingCount);
         request.setAttribute("completedCount", completedCount);
 
         RequestDispatcher dispatcher
@@ -185,6 +214,15 @@ public class OrderServlet extends HttpServlet {
     private void insertOrder(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, IOException {
 
+        HttpSession session = request.getSession(false);
+        User user = (User) session.getAttribute("user");
+
+        if (user.getRoleId() == 2) {
+            response.sendRedirect(request.getContextPath()
+                    + "/OrderServlet?action=list");
+            return;
+        }
+
         Order order = buildOrderFromRequest(request, 0);
 
         orderDAO.insertOrder(order);
@@ -195,6 +233,15 @@ public class OrderServlet extends HttpServlet {
 
     private void updateOrder(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, IOException {
+
+        HttpSession session = request.getSession(false);
+        User user = (User) session.getAttribute("user");
+
+        if (user.getRoleId() == 2) {
+            response.sendRedirect(request.getContextPath()
+                    + "/OrderServlet?action=list");
+            return;
+        }
 
         int orderId = Integer.parseInt(request.getParameter("orderId"));
 
@@ -237,7 +284,6 @@ public class OrderServlet extends HttpServlet {
         String supplierName = request.getParameter("supplierName").trim();
         String status = request.getParameter("status");
 
-        String[] productIds = request.getParameterValues("productId");
         String[] itemNames = request.getParameterValues("itemName");
         String[] quantities = request.getParameterValues("quantity");
         String[] unitPrices = request.getParameterValues("unitPrice");
@@ -255,8 +301,6 @@ public class OrderServlet extends HttpServlet {
                 continue;
             }
 
-            int productId = Integer.parseInt(productIds[i]);
-
             int quantity = Integer.parseInt(quantities[i]);
 
             double unitPrice = Double.parseDouble(unitPrices[i]);
@@ -265,17 +309,18 @@ public class OrderServlet extends HttpServlet {
 
             totalAmount += subtotal;
 
-            orderItems.add(
-                    new OrderItem(
-                            0,
-                            orderId,
-                            productId,
-                            itemName,
-                            quantity,
-                            unitPrice,
-                            subtotal
-                    )
-            );
+            OrderItem item = new OrderItem();
+            item.setOrderId(orderId);
+
+            // no product ID yet
+            item.setProductId(0);
+
+            item.setItemName(itemName);
+            item.setQuantity(quantity);
+            item.setUnitPrice(unitPrice);
+            item.setSubtotal(subtotal);
+
+            orderItems.add(item);
 
             itemSummary.append(itemName)
                     .append(" x ")

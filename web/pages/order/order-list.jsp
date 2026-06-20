@@ -62,8 +62,6 @@
 
                                         if ("Completed".equalsIgnoreCase(status)) {
                                             badge = "bg-green-100 text-green-700";
-                                        } else if ("Processing".equalsIgnoreCase(status)) {
-                                            badge = "bg-blue-100 text-blue-700";
                                         }
                             %>
 
@@ -91,13 +89,6 @@
                                 <td class="p-4 text-right space-x-3">
                                     <a href="${pageContext.request.contextPath}/OrderServlet?action=details&id=<%= order.getOrderId()%>"
                                        class="text-slate-600 font-semibold hover:underline">View</a>
-
-                                    <a href="${pageContext.request.contextPath}/OrderServlet?action=edit&id=<%= order.getOrderId()%>"
-                                       class="text-blue-600 font-semibold hover:underline">Edit</a>
-
-                                    <a href="${pageContext.request.contextPath}/OrderServlet?action=delete&id=<%= order.getOrderId()%>"
-                                       onclick="return confirm('Delete this order?')"
-                                       class="text-red-600 font-semibold hover:underline">Delete</a>
                                 </td>
                             </tr>
 

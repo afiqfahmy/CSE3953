@@ -11,7 +11,9 @@ import java.util.List;
 public class ProductDAO {
 
     private static final String INSERT_PRODUCT_SQL
-            = "INSERT INTO products (product_name, category, unit_price, quantity, threshold, expiry_date, supplier_name) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            = "INSERT INTO products "
+            + "(product_name, category, unit_price, quantity, threshold, expiry_date, supplier_name, status) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
     private static final String SELECT_PRODUCT_BY_ID
             = "SELECT * FROM products WHERE product_id = ?";
@@ -20,7 +22,16 @@ public class ProductDAO {
             = "SELECT * FROM products ORDER BY product_name ASC";
 
     private static final String UPDATE_PRODUCT_SQL
-            = "UPDATE products SET product_name = ?, category = ?, unit_price = ?, quantity = ?, threshold = ?, expiry_date = ?, supplier_name = ? WHERE product_id = ?";
+            = "UPDATE products SET "
+            + "product_name = ?, "
+            + "category = ?, "
+            + "unit_price = ?, "
+            + "quantity = ?, "
+            + "threshold = ?, "
+            + "expiry_date = ?, "
+            + "supplier_name = ?, "
+            + "status = ? "
+            + "WHERE product_id = ?";
 
     private static final String DELETE_PRODUCT_SQL
             = "DELETE FROM products WHERE product_id = ?";
@@ -35,6 +46,7 @@ public class ProductDAO {
             statement.setInt(5, product.getThreshold());
             statement.setString(6, product.getExpiryDate());
             statement.setString(7, product.getSupplierName());
+            statement.setString(8, product.getStatus());
 
             statement.executeUpdate();
         }
@@ -108,6 +120,7 @@ public class ProductDAO {
     }
 
     public boolean updateProduct(Product product) throws SQLException {
+
         try (Connection connection = DBConnection.getConnection(); PreparedStatement statement = connection.prepareStatement(UPDATE_PRODUCT_SQL)) {
 
             statement.setString(1, product.getProductName());
@@ -117,7 +130,8 @@ public class ProductDAO {
             statement.setInt(5, product.getThreshold());
             statement.setString(6, product.getExpiryDate());
             statement.setString(7, product.getSupplierName());
-            statement.setInt(8, product.getProductId());
+            statement.setString(8, product.getStatus());
+            statement.setInt(9, product.getProductId());
 
             return statement.executeUpdate() > 0;
         }
@@ -155,7 +169,8 @@ public class ProductDAO {
                 rs.getInt("quantity"),
                 rs.getInt("threshold"),
                 rs.getString("expiry_date"),
-                rs.getString("supplier_name")
+                rs.getString("supplier_name"),
+                rs.getString("status")
         );
     }
 
@@ -176,10 +191,16 @@ public class ProductDAO {
         return null;
     }
 
-    public boolean increaseStockByProductName(String productName, int quantityToAdd) throws SQLException {
-        String sql = "UPDATE products SET quantity = quantity + ? WHERE LOWER(product_name) = LOWER(?)";
+    public boolean increaseStockByProductName(String productName, int quantityToAdd)
+            throws SQLException {
 
-        try (Connection connection = DBConnection.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+        String sql
+                = "UPDATE products "
+                + "SET quantity = quantity + ? "
+                + "WHERE LOWER(product_name) = LOWER(?)";
+
+        try (
+                Connection connection = DBConnection.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setInt(1, quantityToAdd);
             statement.setString(2, productName);
@@ -201,6 +222,7 @@ public class ProductDAO {
     }
 
     public List<OrderedItemSource> getCompletedOrderItemsForProduct() throws SQLException {
+
         List<OrderedItemSource> items = new ArrayList<>();
 
         String sql
@@ -208,21 +230,59 @@ public class ProductDAO {
                 + "FROM order_items oi "
                 + "JOIN orders o ON oi.order_id = o.order_id "
                 + "WHERE o.status = 'Completed' "
+                + "AND NOT EXISTS ( "
+                + "    SELECT 1 "
+                + "    FROM products p "
+                + "    WHERE LOWER(p.product_name) = LOWER(oi.item_name) "
+                + ") "
                 + "ORDER BY o.order_date DESC";
 
-        try (Connection connection = DBConnection.getConnection(); PreparedStatement statement = connection.prepareStatement(sql); ResultSet rs = statement.executeQuery()) {
+        try (
+                Connection connection = DBConnection.getConnection(); PreparedStatement statement = connection.prepareStatement(sql); ResultSet rs = statement.executeQuery()) {
 
             while (rs.next()) {
-                items.add(new OrderedItemSource(
-                        rs.getInt("order_item_id"),
-                        rs.getString("item_name"),
-                        rs.getString("supplier_name"),
-                        rs.getInt("quantity"),
-                        rs.getDouble("unit_price")
-                ));
+
+                items.add(
+                        new OrderedItemSource(
+                                rs.getInt("order_item_id"),
+                                rs.getString("item_name"),
+                                rs.getString("supplier_name"),
+                                rs.getInt("quantity"),
+                                rs.getDouble("unit_price")
+                        )
+                );
             }
         }
 
         return items;
+    }
+
+    public void markOrderItemAsCreated(String itemName) throws SQLException {
+
+        String sql
+                = "UPDATE order_items "
+                + "SET product_created = 1 "
+                + "WHERE item_name = ?";
+
+        try (
+                Connection connection = DBConnection.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setString(1, itemName);
+
+            statement.executeUpdate();
+        }
+    }
+
+    public boolean updateStatus(int productId, String status) throws SQLException {
+
+        String sql = "UPDATE products SET status = ? WHERE product_id = ?";
+
+        try (Connection connection = DBConnection.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setString(1, status);
+            statement.setInt(2, productId);
+
+            return statement.executeUpdate() > 0;
+        }
     }
 }

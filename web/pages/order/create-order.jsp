@@ -36,8 +36,7 @@
 
                         <div>
                             <label class="block font-semibold mb-2">Supplier Name</label>
-                            <input type="text" name="supplierName" required
-                                   placeholder="Example: Megah Holding"
+                            <input type="text" name="supplierName" required placeholder="E.g. Megah Holding"
                                    class="w-full border rounded-xl px-4 py-3">
                         </div>
 
@@ -60,14 +59,10 @@
                             <span id="totalDisplay" class="text-3xl font-black text-blue-600">RM 0.00</span>
                         </div>
 
-                        <div>
-                            <label class="block font-semibold mb-2">Status</label>
-                            <select name="status" class="w-full border rounded-xl px-4 py-3">
-                                <option value="Pending">Pending</option>
-                                <option value="Processing">Processing</option>
-                                <option value="Completed">Completed</option>
-                            </select>
-                        </div>
+                        <select name="status" class="w-full border rounded-xl px-4 py-3">
+                            <option value="Pending">Pending</option>
+                            <option value="Completed">Completed</option>
+                        </select>
 
                         <div class="flex justify-end gap-3 pt-4">
                             <a href="${pageContext.request.contextPath}/OrderServlet?action=list"
@@ -98,7 +93,7 @@
                 row.innerHTML =
                         '<div class="col-span-5">' +
                         '<label class="block text-sm font-semibold mb-1">Item Name</label>' +
-                        '<input type="text" name="itemName" required placeholder="MAGGI 2-Minit Kari" ' +
+                        '<input type="text" name="itemName" required placeholder="E.g. Maggi Kari " ' +
                         'class="w-full border rounded-xl px-3 py-2">' +
                         '</div>' +
                         '<div class="col-span-2">' +
