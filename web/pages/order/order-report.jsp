@@ -26,6 +26,18 @@
                     </div>
                 </div>
 
+                <%
+                    if ("paid".equals(request.getParameter("success"))) {
+                %>
+
+                <div class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
+                    ✅ Payment completed successfully through ToyyibPay.
+                </div>
+
+                <%
+                    }
+                %>
+
                 <div class="grid grid-cols-4 gap-5 mb-8">
 
                     <div class="bg-white p-5 rounded-2xl shadow-sm">
@@ -60,6 +72,7 @@
                                 <th class="p-4 text-left">Supplier</th>
                                 <th class="p-4 text-left">Amount</th>
                                 <th class="p-4 text-left">Status</th>
+                                <th class="p-4 text-left">Action</th>
                             </tr>
                         </thead>
 
@@ -78,7 +91,36 @@
                                 <td class="p-4 font-semibold"><%= index++%></td>
                                 <td class="p-4"><%= order.getSupplierName()%></td>
                                 <td class="p-4">RM <%= String.format("%.2f", order.getTotalAmount())%></td>
-                                <td class="p-4"><%= order.getStatus()%></td>
+                                <td class="p-4">
+                                    <%= order.getStatus()%>
+                                </td>
+
+                                <td class="p-4">
+
+                                    <%
+                                        if ("PENDING_PAYMENT".equalsIgnoreCase(order.getStatus())) {
+                                    %>
+
+                                    <a href="<%=request.getContextPath()%>/ToyyibPayServlet?id=<%=order.getOrderId()%>"
+                                       class="inline-block bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+
+                                        Pay Supplier
+
+                                    </a>
+
+                                    <%
+                                    } else {
+                                    %>
+
+                                    <span class="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                        Completed
+                                    </span>
+
+                                    <%
+                                        }
+                                    %>
+
+                                </td>
                             </tr>
 
                             <%
@@ -87,7 +129,7 @@
                             %>
 
                             <tr>
-                                <td colspan="4" class="p-10 text-center text-slate-400 italic">
+                                <td colspan="5" class="p-10 text-center text-slate-400 italic">
                                     No order report data available.
                                 </td>
                             </tr>

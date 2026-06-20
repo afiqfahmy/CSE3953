@@ -59,11 +59,6 @@
                             <span id="totalDisplay" class="text-3xl font-black text-blue-600">RM 0.00</span>
                         </div>
 
-                        <select name="status" class="w-full border rounded-xl px-4 py-3">
-                            <option value="Pending">Pending</option>
-                            <option value="Completed">Completed</option>
-                        </select>
-
                         <div class="flex justify-end gap-3 pt-4">
                             <a href="${pageContext.request.contextPath}/OrderServlet?action=list"
                                class="bg-slate-200 px-5 py-3 rounded-xl font-semibold">

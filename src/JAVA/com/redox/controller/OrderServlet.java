@@ -41,6 +41,22 @@ public class OrderServlet extends HttpServlet {
                     break;
 
                 case "edit":
+
+                    int id = Integer.parseInt(request.getParameter("id"));
+
+                    Order order = orderDAO.getOrderById(id);
+
+                    if ("PENDING_PAYMENT".equals(order.getStatus())) {
+
+                        response.sendRedirect(
+                                request.getContextPath()
+                                + "/OrderServlet?action=details&id="
+                                + id
+                        );
+
+                        return;
+                    }
+
                     showEditForm(request, response);
                     break;
 
@@ -57,6 +73,10 @@ public class OrderServlet extends HttpServlet {
 
                 case "report":
                     showReport(request, response);
+                    break;
+
+                case "pay":
+                    paySupplier(request, response);
                     break;
 
                 case "list":
@@ -261,8 +281,8 @@ public class OrderServlet extends HttpServlet {
         AND
         new status == Completed
          */
-        if (!"Completed".equalsIgnoreCase(oldOrder.getStatus())
-                && "Completed".equalsIgnoreCase(updatedOrder.getStatus())) {
+        if (!"PAID".equalsIgnoreCase(oldOrder.getStatus())
+                && "PAID".equalsIgnoreCase(updatedOrder.getStatus())) {
 
             ProductDAO productDAO = new ProductDAO();
 
@@ -282,8 +302,7 @@ public class OrderServlet extends HttpServlet {
     private Order buildOrderFromRequest(HttpServletRequest request, int orderId) {
 
         String supplierName = request.getParameter("supplierName").trim();
-        String status = request.getParameter("status");
-
+        String status = "PENDING_PAYMENT";
         String[] itemNames = request.getParameterValues("itemName");
         String[] quantities = request.getParameterValues("quantity");
         String[] unitPrices = request.getParameterValues("unitPrice");
@@ -353,5 +372,26 @@ public class OrderServlet extends HttpServlet {
 
         response.sendRedirect(request.getContextPath()
                 + "/OrderServlet?action=list&success=deleted");
+    }
+
+    private void paySupplier(HttpServletRequest request,
+            HttpServletResponse response)
+            throws SQLException, IOException {
+
+        int orderId = Integer.parseInt(request.getParameter("id"));
+
+        boolean success = orderDAO.markAsPaid(orderId);
+
+        if (success) {
+            response.sendRedirect(
+                    request.getContextPath()
+                    + "/OrderServlet?action=report&success=paid"
+            );
+        } else {
+            response.sendRedirect(
+                    request.getContextPath()
+                    + "/OrderServlet?action=report&error=payment_failed"
+            );
+        }
     }
 }

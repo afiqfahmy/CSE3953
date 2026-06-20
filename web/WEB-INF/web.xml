@@ -59,7 +59,27 @@
         <servlet-name>LogoutController</servlet-name>
         <url-pattern>/LogoutController</url-pattern>
     </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>ToyyibPayServlet</servlet-name>
+        <servlet-class>com.redox.controller.ToyyibPayServlet</servlet-class>
+    </servlet>
 
+    <servlet-mapping>
+        <servlet-name>ToyyibPayServlet</servlet-name>
+        <url-pattern>/ToyyibPayServlet</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ToyyibPayReturnServlet</servlet-name>
+        <servlet-class>com.redox.controller.ToyyibPayReturnServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>ToyyibPayReturnServlet</servlet-name>
+        <url-pattern>/ToyyibPayReturnServlet</url-pattern>
+    </servlet-mapping>
+    
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>

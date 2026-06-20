@@ -56,29 +56,59 @@
                     </div>
                 </c:if>
 
-                <!-- Stats -->
-                <div class="grid grid-cols-3 gap-5 mb-8">
+                <!-- Recent Alerts -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm mb-6">
 
-                    <div class="bg-white p-5 rounded-2xl shadow-sm">
-                        <p class="text-slate-500 text-sm">Total Products</p>
-                        <h2 class="text-3xl font-bold text-slate-800">${totalProducts}</h2>
-                    </div>
+                    <h3 class="text-lg font-bold mb-4">
+                        Recent Alerts
+                    </h3>
 
-                    <div class="bg-white p-5 rounded-2xl shadow-sm">
-                        <p class="text-slate-500 text-sm">Low Stock</p>
-                        <h2 class="text-3xl font-bold text-red-600">${lowStockCount}</h2>
-                    </div>
+                    <div class="space-y-3">
 
-                    <div class="bg-white p-5 rounded-2xl shadow-sm">
-                        <p class="text-slate-500 text-sm">Total Units</p>
-                        <h2 class="text-3xl font-bold text-green-600">${totalQuantity}</h2>
-                    </div>
+                        <c:forEach items="${expiredProducts}" var="product">
 
-                    <div class="bg-white rounded-2xl p-6 shadow-sm">
-                        <p class="text-slate-500">Expiring Soon</p>
-                        <h2 class="text-3xl font-bold text-yellow-600">
-                            ${expiringCount}
-                        </h2>
+                            <div class="bg-red-50 border border-red-200 rounded-xl p-3">
+
+                                ⚠ ${product.productName}
+                                expired on ${product.expiryDate}
+
+                            </div>
+
+                        </c:forEach>
+
+                        <c:forEach items="${expiringSoonProducts}" var="product">
+
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-3">
+
+                                ⚠ ${product.productName}
+                                expires on ${product.expiryDate}
+
+                            </div>
+
+                        </c:forEach>
+
+                        <c:forEach items="${lowStockProducts}" var="product">
+
+                            <div class="bg-orange-50 border border-orange-200 rounded-xl p-3">
+
+                                ⚠ ${product.productName}
+                                only ${product.quantity} units remaining
+
+                            </div>
+
+                        </c:forEach>
+
+                        <c:forEach items="${outOfStockProducts}" var="product">
+
+                            <div class="bg-orange-50 border border-orange-200 rounded-xl p-3">
+
+                                ⚠ ${product.productName}
+                                is out of stock
+
+                            </div>
+
+                        </c:forEach>
+
                     </div>
 
                 </div>

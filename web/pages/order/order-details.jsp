@@ -124,22 +124,6 @@
                             </table>
                         </div>
                     </div>
-
-                    <div class="p-8 border-t flex justify-end gap-3">
-
-                        <a href="${pageContext.request.contextPath}/OrderServlet?action=edit&id=<%= order.getOrderId()%>"
-                           class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl font-semibold">
-                            Edit Order
-                        </a>
-
-                        <a href="${pageContext.request.contextPath}/OrderServlet?action=delete&id=<%= order.getOrderId()%>"
-                           onclick="return confirm('Delete this order?')"
-                           class="bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-xl font-semibold">
-                            Delete Order
-                        </a>
-
-                    </div>
-
                 </div>
 
             </div>

@@ -229,4 +229,72 @@ public class OrderDAO {
                 rs.getString("status")
         );
     }
+
+    public boolean markAsPaid(int orderId) throws SQLException {
+
+        Connection conn = null;
+
+        try {
+
+            conn = DBConnection.getConnection();
+            conn.setAutoCommit(false);
+
+            // Get order and items
+            Order order = getOrderById(orderId);
+
+            if (order == null) {
+                return false;
+            }
+
+            // Update order status
+            String sql = "UPDATE orders "
+                    + "SET status = 'COMPLETED' "
+                    + "WHERE order_id = ?";
+
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, orderId);
+
+            int rowsAffected = ps.executeUpdate();
+
+            if (rowsAffected == 0) {
+                conn.rollback();
+                return false;
+            }
+
+            // Update stock for all ordered items
+            ProductDAO productDAO = new ProductDAO();
+
+            for (OrderItem item : order.getOrderItems()) {
+
+                System.out.println(
+                        "Updating Product ID: "
+                        + item.getProductId()
+                        + " Qty: "
+                        + item.getQuantity()
+                );
+
+                productDAO.increaseStockByProductId(
+                        item.getProductId(),
+                        item.getQuantity()
+                );
+            }
+
+            conn.commit();
+            return true;
+
+        } catch (Exception e) {
+
+            if (conn != null) {
+                conn.rollback();
+            }
+
+            throw new SQLException("Failed to complete supplier payment.", e);
+
+        } finally {
+
+            if (conn != null) {
+                conn.close();
+            }
+        }
+    }
 }

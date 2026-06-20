@@ -285,4 +285,188 @@ public class ProductDAO {
             return statement.executeUpdate() > 0;
         }
     }
+
+    public int getExpiredCount() {
+
+        int count = 0;
+
+        String sql
+                = "SELECT COUNT(*) "
+                + "FROM products "
+                + "WHERE expiry_date < CURDATE()";
+
+        try (
+                Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return count;
+    }
+
+    public int getExpiringSoonCount() {
+
+        int count = 0;
+
+        String sql
+                = "SELECT COUNT(*) "
+                + "FROM products "
+                + "WHERE expiry_date BETWEEN CURDATE() "
+                + "AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)";
+
+        try (
+                Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return count;
+    }
+
+    public int getOutOfStockCount() {
+
+        int count = 0;
+
+        String sql
+                = "SELECT COUNT(*) "
+                + "FROM products "
+                + "WHERE quantity = 0";
+
+        try (
+                Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return count;
+    }
+
+    public int getLowStockCount() {
+
+        int count = 0;
+
+        String sql
+                = "SELECT COUNT(*) "
+                + "FROM products "
+                + "WHERE quantity > 0 "
+                + "AND quantity <= threshold";
+
+        try (
+                Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return count;
+    }
+
+    public List<Product> getExpiredProducts() {
+
+        List<Product> list = new ArrayList<>();
+
+        String sql
+                = "SELECT * FROM products "
+                + "WHERE expiry_date < CURDATE()";
+
+        try (
+                Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                list.add(mapProduct(rs));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    public List<Product> getLowStockProducts() {
+
+        List<Product> list = new ArrayList<>();
+
+        String sql
+                = "SELECT * FROM products "
+                + "WHERE quantity > 0 "
+                + "AND quantity <= threshold";
+
+        try (
+                Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                list.add(mapProduct(rs));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    public List<Product> getOutOfStockProducts() {
+
+        List<Product> list = new ArrayList<>();
+
+        String sql
+                = "SELECT * FROM products "
+                + "WHERE quantity = 0";
+
+        try (
+                Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                list.add(mapProduct(rs));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+    public List<Product> getExpiringSoonProducts() {
+
+        List<Product> list = new ArrayList<>();
+
+        String sql
+                = "SELECT * FROM products "
+                + "WHERE expiry_date BETWEEN CURDATE() "
+                + "AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)";
+
+        try (
+                Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                list.add(mapProduct(rs));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
 }

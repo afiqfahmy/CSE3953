@@ -24,20 +24,30 @@
 
                 <div class="mb-8">
                     <h1 class="text-3xl font-bold text-slate-800">Sales Menu</h1>
-                    <p class="text-slate-500">Record customer purchases</p>
 
-                    <input
-                        type="text"
-                        id="productSearch"
-                        placeholder="Search product..."
-                        onkeyup="searchProducts()"
-                        class="mt-4 w-full p-3 border rounded-xl"
-                        >
-                </div>
-                <div class="mb-6">
-                    <input type="text" id="searchBox" onkeyup="filterProducts()" 
-                           placeholder="Search products by name..." 
-                           class="w-full p-4 rounded-xl border border-slate-200 shadow-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    <div class="mt-4 flex gap-4">
+
+                        <input
+                            type="text"
+                            id="productSearch"
+                            placeholder="Search product..."
+                            onkeyup="searchProducts()"
+                            class="flex-1 p-3 border rounded-xl">
+
+                        <select
+                            id="categoryFilter"
+                            onchange="searchProducts()"
+                            class="w-56 p-3 border rounded-xl">
+
+                            <option value="ALL">All Categories</option>
+                            <option value="DRINKS">Drinks</option>
+                            <option value="INSTANT_FOOD">Instant Food</option>
+                            <option value="DAIRY">Dairy</option>
+                            <option value="HOUSEHOLD">Household</option>
+
+                        </select>
+
+                    </div>
                 </div>
                 <div class="grid grid-cols-3 gap-5">
 
@@ -53,10 +63,12 @@
                                 String productName = rs.getString("product_name");
                                 double unitPrice = rs.getDouble("unit_price");
                                 int quantity = rs.getInt("quantity");
+                                String category = rs.getString("category");
                     %>
 
                     <button
                         data-name="<%= productName.toLowerCase()%>"
+                        data-category="<%= category%>"
 
                         onclick="addToCart(
                         <%= productId%>,
@@ -80,6 +92,10 @@
                         <h3 class="font-bold text-slate-800 text-lg">
                             <%= productName%>
                         </h3>
+
+                        <p class="text-xs text-slate-500 uppercase mt-1">
+                            <%= category%>
+                        </p>
 
                         <p class="text-blue-600 font-black text-xl mt-2">
                             RM <%= String.format("%.2f", unitPrice)%>
@@ -433,6 +449,10 @@
                         .value
                         .toLowerCase();
 
+                let category =
+                        document.getElementById("categoryFilter")
+                        .value;
+
                 let cards =
                         document.querySelectorAll(".product-card");
 
@@ -441,7 +461,17 @@
                     let productName =
                             card.getAttribute("data-name");
 
-                    if (productName.includes(keyword)) {
+                    let productCategory =
+                            card.getAttribute("data-category");
+
+                    let matchesName =
+                            productName.includes(keyword);
+
+                    let matchesCategory =
+                            category === "ALL"
+                            || productCategory === category;
+
+                    if (matchesName && matchesCategory) {
 
                         card.style.display = "";
 

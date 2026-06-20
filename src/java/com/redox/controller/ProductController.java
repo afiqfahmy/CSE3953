@@ -160,6 +160,38 @@ public class ProductController extends HttpServlet {
         request.setAttribute("lowStockCount", lowStockCount);
         request.setAttribute("totalQuantity", totalQuantity);
         request.setAttribute("expiringCount", expiringCount);
+        request.setAttribute(
+                "expiredCount",
+                productDAO.getExpiredCount());
+
+        request.setAttribute(
+                "expiringSoonCount",
+                productDAO.getExpiringSoonCount());
+
+        request.setAttribute(
+                "outOfStockCount",
+                productDAO.getOutOfStockCount());
+
+        request.setAttribute(
+                "lowStockAlertCount",
+                productDAO.getLowStockCount());
+
+        request.setAttribute(
+                "expiredProducts",
+                productDAO.getExpiredProducts());
+
+        request.setAttribute(
+                "lowStockProducts",
+                productDAO.getLowStockProducts());
+
+        request.setAttribute(
+                "outOfStockProducts",
+                productDAO.getOutOfStockProducts());
+
+        request.setAttribute(
+                "expiringSoonProducts",
+                productDAO.getExpiringSoonProducts());
+
         request.setAttribute("keyword", keyword);
         request.setAttribute("category", category);
 
