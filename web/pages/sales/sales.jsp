@@ -34,7 +34,11 @@
                         class="mt-4 w-full p-3 border rounded-xl"
                         >
                 </div>
-
+                <div class="mb-6">
+                    <input type="text" id="searchBox" onkeyup="filterProducts()" 
+                           placeholder="Search products by name..." 
+                           class="w-full p-4 rounded-xl border border-slate-200 shadow-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
                 <div class="grid grid-cols-3 gap-5">
 
                     <%
@@ -140,6 +144,26 @@
         </main>
 
         <script>
+            function filterProducts() {
+                const input = document.getElementById("searchBox");
+                const filter = input.value.toLowerCase();
+
+                // Select all buttons inside the grid
+                const container = document.querySelector(".grid");
+                const buttons = container.getElementsByTagName("button");
+
+                for (let i = 0; i < buttons.length; i++) {
+                    // Get the product name from the <h3> tag inside the button
+                    const title = buttons[i].getElementsByTagName("h3")[0];
+                    const textValue = title.textContent || title.innerText;
+
+                    if (textValue.toLowerCase().indexOf(filter) > -1) {
+                        buttons[i].style.display = ""; // Show
+                    } else {
+                        buttons[i].style.display = "none"; // Hide
+                    }
+                }
+            }
 
             let cart = [];
 
