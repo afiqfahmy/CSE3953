@@ -277,6 +277,11 @@ public class OrderDAO {
                         item.getProductId(),
                         item.getQuantity()
                 );
+
+                productDAO.updateStatus(
+                        item.getProductId(),
+                        "IN_STOCK"
+                );
             }
 
             conn.commit();

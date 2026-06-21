@@ -53,7 +53,7 @@ public class ToyyibPayServlet extends HttpServlet {
                     + "&billCallbackUrl=" + URLEncoder.encode(callbackUrl, "UTF-8")
                     + "&billExternalReferenceNo=ORDER-" + orderId
                     + "&billTo=Manager"
-                    + "&billEmail=test@test.com"
+                    + "&billEmail=afiqfahmy3@gmail.com"
                     + "&billPhone=0123456789";
 
             URL url = new URL(

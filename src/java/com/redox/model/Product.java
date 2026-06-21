@@ -39,6 +39,10 @@ public class Product {
 
     public String getStockStatus() {
 
+        if ("PENDING_STOCK".equalsIgnoreCase(status)) {
+            return "Awaiting Delivery";
+        }
+
         if (quantity <= 0) {
             return "Out of Stock";
         }

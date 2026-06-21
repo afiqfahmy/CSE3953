@@ -273,16 +273,19 @@ public class ProductDAO {
         }
     }
 
-    public boolean updateStatus(int productId, String status) throws SQLException {
+    public void updateStatus(int productId, String status)
+            throws SQLException {
 
-        String sql = "UPDATE products SET status = ? WHERE product_id = ?";
+        String sql
+                = "UPDATE products SET status = ? WHERE product_id = ?";
 
-        try (Connection connection = DBConnection.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (
+                Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            statement.setString(1, status);
-            statement.setInt(2, productId);
+            ps.setString(1, status);
+            ps.setInt(2, productId);
 
-            return statement.executeUpdate() > 0;
+            ps.executeUpdate();
         }
     }
 
@@ -469,4 +472,40 @@ public class ProductDAO {
 
         return list;
     }
+
+    public int insertAndReturnId(Product product) throws SQLException {
+
+        String sql
+                = "INSERT INTO products "
+                + "(product_name, category, unit_price, quantity, "
+                + "threshold, expiry_date, supplier_name, status) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (
+                Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(
+                sql,
+                Statement.RETURN_GENERATED_KEYS
+        )) {
+
+            ps.setString(1, product.getProductName());
+            ps.setString(2, product.getCategory());
+            ps.setDouble(3, product.getUnitPrice());
+            ps.setInt(4, product.getQuantity());
+            ps.setInt(5, product.getThreshold());
+            ps.setString(6, product.getExpiryDate());
+            ps.setString(7, product.getSupplierName());
+            ps.setString(8, product.getStatus());
+
+            ps.executeUpdate();
+
+            ResultSet rs = ps.getGeneratedKeys();
+
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+
+            throw new SQLException("Unable to retrieve product ID.");
+        }
+    }
+
 }

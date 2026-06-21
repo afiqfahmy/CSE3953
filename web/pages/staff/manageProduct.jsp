@@ -27,14 +27,6 @@
                         <h1 class="text-3xl font-bold text-slate-800">Manage Products</h1>
                         <p class="text-slate-500">Inventory management for Redox RX</p>
                     </div>
-
-                    <c:if test="${sessionScope.user.roleId == 1}">
-                        <a href="${pageContext.request.contextPath}/ProductController?action=add"
-                           class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl font-semibold shadow-sm">
-                            + Add Product
-                        </a>
-                    </c:if>
-
                 </div>
 
                 <!-- Messages -->
@@ -268,15 +260,15 @@
 
                                                 <c:choose>
 
-                                                    <c:when test="${p.status == 'OUT_OF_STOCK'}">
+                                                    <c:when test="${p.quantity <= 0}">
                                                         <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-semibold">
                                                             Out of Stock
                                                         </span>
                                                     </c:when>
 
-                                                    <c:when test="${p.status == 'UNLISTED'}">
-                                                        <span class="bg-slate-200 text-slate-700 px-3 py-1 rounded-full text-sm font-semibold">
-                                                            Unlisted
+                                                    <c:when test="${p.quantity <= p.threshold}">
+                                                        <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                                            Low Stock
                                                         </span>
                                                     </c:when>
 
@@ -287,6 +279,7 @@
                                                     </c:otherwise>
 
                                                 </c:choose>
+
                                             </td>
 
                                             <td class="p-4">

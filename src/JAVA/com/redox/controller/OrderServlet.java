@@ -299,41 +299,112 @@ public class OrderServlet extends HttpServlet {
                 + "/OrderServlet?action=list&success=updated");
     }
 
-    private Order buildOrderFromRequest(HttpServletRequest request, int orderId) {
+    private Order buildOrderFromRequest(
+            HttpServletRequest request,
+            int orderId) throws SQLException {
 
-        String supplierName = request.getParameter("supplierName").trim();
+        String supplierName
+                = request.getParameter("supplierName").trim();
+
         String status = "PENDING_PAYMENT";
-        String[] itemNames = request.getParameterValues("itemName");
-        String[] quantities = request.getParameterValues("quantity");
-        String[] unitPrices = request.getParameterValues("unitPrice");
+
+        String[] quantities
+                = request.getParameterValues("quantity");
+
+        String[] unitPrices
+                = request.getParameterValues("unitPrice");
+
+        String[] productIds
+                = request.getParameterValues("productId");
+
+        String[] newProductNames
+                = request.getParameterValues("newProductName");
 
         List<OrderItem> orderItems = new ArrayList<>();
 
         double totalAmount = 0;
         StringBuilder itemSummary = new StringBuilder();
 
-        for (int i = 0; i < itemNames.length; i++) {
+        ProductDAO productDAO = new ProductDAO();
 
-            String itemName = itemNames[i].trim();
+        for (int i = 0; i < quantities.length; i++) {
 
-            if (itemName.isEmpty()) {
-                continue;
-            }
+            int quantity
+                    = Integer.parseInt(quantities[i]);
 
-            int quantity = Integer.parseInt(quantities[i]);
+            double unitPrice
+                    = Double.parseDouble(unitPrices[i]);
 
-            double unitPrice = Double.parseDouble(unitPrices[i]);
-
-            double subtotal = quantity * unitPrice;
+            double subtotal
+                    = quantity * unitPrice;
 
             totalAmount += subtotal;
 
+            int productId;
+            String itemName;
+
+            // Existing product selected
+            if (productIds[i] != null
+                    && !productIds[i].trim().isEmpty()) {
+
+                productId
+                        = Integer.parseInt(productIds[i]);
+
+                Product product
+                        = productDAO.selectProduct(productId);
+
+                if (product == null) {
+                    throw new SQLException(
+                            "Selected product does not exist."
+                    );
+                }
+
+                itemName
+                        = product.getProductName();
+
+            } else {
+
+                // New product entered
+                itemName
+                        = newProductNames[i].trim();
+
+                if (itemName.isEmpty()) {
+                    throw new IllegalArgumentException(
+                            "Please select a product or enter a new product name."
+                    );
+                }
+
+                // Check if product already exists
+                Product existingProduct
+                        = productDAO.selectProductByName(itemName);
+
+                if (existingProduct != null) {
+
+                    productId
+                            = existingProduct.getProductId();
+
+                } else {
+
+                    Product newProduct = new Product();
+
+                    newProduct.setProductName(itemName);
+                    newProduct.setCategory("General");
+                    newProduct.setUnitPrice(unitPrice);
+                    newProduct.setQuantity(0);
+                    newProduct.setThreshold(10);
+                    newProduct.setExpiryDate(null);
+                    newProduct.setSupplierName(supplierName);
+                    newProduct.setStatus("PENDING_STOCK");
+
+                    productId
+                            = productDAO.insertAndReturnId(newProduct);
+                }
+            }
+
             OrderItem item = new OrderItem();
+
             item.setOrderId(orderId);
-
-            // no product ID yet
-            item.setProductId(0);
-
+            item.setProductId(productId);
             item.setItemName(itemName);
             item.setQuantity(quantity);
             item.setUnitPrice(unitPrice);

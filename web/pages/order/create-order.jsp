@@ -1,4 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
+<%@ page import="java.util.List" %>
+<%@ page import="com.redox.model.Product" %>
 
 <!DOCTYPE html>
 <html>
@@ -80,16 +82,66 @@
 
         <script>
             function addItemRow() {
-                const container = document.getElementById("itemsContainer");
 
-                const row = document.createElement("div");
-                row.className = "grid grid-cols-12 gap-3 bg-slate-50 border rounded-2xl p-4";
+                const container =
+                        document.getElementById("itemsContainer");
+
+                const uniqueId =
+                        Date.now() + Math.floor(Math.random() * 1000);
+
+                const row =
+                        document.createElement("div");
+
+                row.className =
+                        "grid grid-cols-12 gap-3 bg-slate-50 border rounded-2xl p-4 items-end";
 
                 row.innerHTML =
                         '<div class="col-span-5">' +
-                        '<label class="block text-sm font-semibold mb-1">Item Name</label>' +
-                        '<input type="text" name="itemName" required placeholder="E.g. Maggi Kari " ' +
-                        'class="w-full border rounded-xl px-3 py-2">' +
+                        '<label class="block text-sm font-semibold mb-2">Product</label>' +
+                        '<div class="flex gap-4 mb-2 text-sm">' +
+                        '<label>' +
+                        '<input type="radio" ' +
+                        'name="productMode' + uniqueId + '" ' +
+                        'value="existing" checked ' +
+                        'onchange="toggleProductMode(this)"> ' +
+                        'Existing' +
+                        '</label>' +
+                        '<label>' +
+                        '<input type="radio" ' +
+                        'name="productMode' + uniqueId + '" ' +
+                        'value="new" ' +
+                        'onchange="toggleProductMode(this)"> ' +
+                        'New' +
+                        '</label>' +
+                        '</div>' +
+                        '<div class="existingProductSection">' +
+                        '<select name="productId" ' +
+                        'class="productDropdown w-full border rounded-xl px-3 py-2">' +
+                        '<option value="">-- Select Product --</option>' +
+            <%
+                List<Product> products
+                        = (List<Product>) request.getAttribute("productList");
+
+                if (products != null) {
+                    for (Product p : products) {
+            %>
+
+                '<option value="<%= p.getProductId()%>">' +
+                        '<%= p.getProductName()%>' +
+                        '</option>' +
+            <%
+                    }
+                }
+            %>
+
+                '</select>' +
+                        '</div>' +
+                        '<div class="newProductSection hidden">' +
+                        '<input type="text" ' +
+                        'name="newProductName" ' +
+                        'placeholder="Enter new product name" ' +
+                        'class="productTextbox w-full border rounded-xl px-3 py-2">' +
+                        '</div>' +
                         '</div>' +
                         '<div class="col-span-2">' +
                         '<label class="block text-sm font-semibold mb-1">Qty</label>' +
@@ -110,6 +162,7 @@
                         '</div>';
 
                 container.appendChild(row);
+
                 calculateTotal();
             }
 
@@ -143,6 +196,38 @@
                 }
 
                 return true;
+            }
+
+            function toggleProductMode(radio) {
+
+                const row = radio.closest(".grid");
+
+                const existingSection =
+                        row.querySelector(".existingProductSection");
+
+                const newSection =
+                        row.querySelector(".newProductSection");
+
+                const dropdown =
+                        row.querySelector(".productDropdown");
+
+                const textbox =
+                        row.querySelector(".productTextbox");
+
+                if (radio.value === "existing") {
+
+                    existingSection.classList.remove("hidden");
+                    newSection.classList.add("hidden");
+
+                    textbox.value = "";
+
+                } else {
+
+                    existingSection.classList.add("hidden");
+                    newSection.classList.remove("hidden");
+
+                    dropdown.value = "";
+                }
             }
 
             addItemRow();
