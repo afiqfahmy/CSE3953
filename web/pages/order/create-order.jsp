@@ -96,7 +96,7 @@
                         "grid grid-cols-12 gap-3 bg-slate-50 border rounded-2xl p-4 items-end";
 
                 row.innerHTML =
-                        '<div class="col-span-5">' +
+                        '<div class="col-span-4">' +
                         '<label class="block text-sm font-semibold mb-2">Product</label>' +
                         '<div class="flex gap-4 mb-2 text-sm">' +
                         '<label>' +
@@ -140,7 +140,13 @@
                         '<input type="text" ' +
                         'name="newProductName" ' +
                         'placeholder="Enter new product name" ' +
-                        'class="productTextbox w-full border rounded-xl px-3 py-2">' +
+                        'class="productTextbox w-full border rounded-xl px-3 py-2 mb-2">' +
+                        '<select name="newProductCategory" ' +
+                        'class="w-full border rounded-xl px-3 py-2">' +
+                        '<option value="">-- Select Category --</option>' +
+                        '<option value="General">General</option>' +
+                        '<option value="Household">Household</option>' +
+                        '</select>' +
                         '</div>' +
                         '</div>' +
                         '<div class="col-span-2">' +
