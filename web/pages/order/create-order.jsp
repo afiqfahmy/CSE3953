@@ -2,6 +2,11 @@
 <%@ page import="java.util.List" %>
 <%@ page import="com.redox.model.Product" %>
 
+<%
+    List<Product> products
+            = (List<Product>) request.getAttribute("productList");
+%>
+
 <!DOCTYPE html>
 <html>
     <head>
@@ -38,22 +43,43 @@
 
                         <div>
                             <label class="block font-semibold mb-2">Supplier Name</label>
-                            <input type="text" name="supplierName" required placeholder="E.g. Megah Holding"
-                                   class="w-full border rounded-xl px-4 py-3">
+                            <input type="text"
+                                   id="supplierName"
+                                   name="supplierName"
+                                   readonly
+                                   required
+                                   placeholder="Select a product first..."
+                                   class="w-full border rounded-xl px-4 py-3 bg-slate-100">
                         </div>
 
                         <div>
                             <div class="flex justify-between items-center mb-3">
                                 <label class="block font-semibold">Order Items</label>
-
                                 <button type="button"
-                                        onclick="addItemRow()"
+                                        onclick="openItemModal()"
                                         class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-semibold">
                                     + Add Item
                                 </button>
                             </div>
 
-                            <div id="itemsContainer" class="space-y-4"></div>
+                            <div class="overflow-x-auto border rounded-2xl">
+
+                                <table class="w-full">
+                                    <thead>
+                                        <tr>
+                                            <th class="p-4 text-left">Product</th>
+                                            <th class="p-4 text-left">Qty</th>
+                                            <th class="p-4 text-left">Supplier Price</th>
+                                            <th class="p-4 text-left">Subtotal</th>
+                                            <th class="p-4 text-center">Action</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody id="itemsContainer">
+                                    </tbody>
+                                </table>
+
+                            </div>
                         </div>
 
                         <div class="bg-slate-50 rounded-2xl p-5 flex justify-between items-center">
@@ -73,6 +99,178 @@
                             </button>
                         </div>
 
+                        <!-- Add Item Modal -->
+                        <div id="itemModal"
+                             class="hidden fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+
+                            <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6">
+
+                                <div class="flex justify-between items-center mb-5">
+                                    <h2 class="text-xl font-bold">
+                                        Add Product
+                                    </h2>
+
+                                    <div id="modalSupplierInfo"
+                                         class="hidden bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4">
+
+                                        Supplier:
+                                        <span id="modalSupplierDisplay"
+                                              class="font-semibold text-blue-700">
+                                        </span>
+
+                                    </div>
+
+                                    <button type="button"
+                                            onclick="closeItemModal()"
+                                            class="text-slate-500 text-xl">
+                                    </button>
+                                </div>
+
+                                <div class="space-y-4">
+
+                                    <div>
+                                        <label class="font-semibold text-sm">
+                                            Product Type
+                                        </label>
+
+                                        <div class="flex gap-5 mt-2">
+
+                                            <label>
+                                                <input type="radio"
+                                                       name="modalProductMode"
+                                                       value="existing"
+                                                       checked
+                                                       onchange="toggleModalProductMode(this)">
+                                                Existing Product
+                                            </label>
+
+                                            <label>
+                                                <input type="radio"
+                                                       name="modalProductMode"
+                                                       value="new"
+                                                       onchange="toggleModalProductMode(this)">
+                                                New Product
+                                            </label>
+
+                                        </div>
+                                    </div>
+
+                                    <!-- Existing Product -->
+
+                                    <div id="modalExistingSection">
+
+                                        <label class="font-semibold text-sm">
+                                            Product
+                                        </label>
+
+                                        <select id="modalProduct"
+                                                onchange="handleModalProductSelection(this)"
+                                                class="w-full border rounded-xl px-4 py-3 mt-2">
+
+                                            <option value="">
+                                                -- Select Product --
+                                            </option>
+
+                                            <%
+                                                if (products != null) {
+                                                    for (Product p : products) {
+                                            %>
+
+                                            <option value="<%= p.getProductId()%>"
+                                                    data-supplier="<%= p.getSupplierName()%>">
+
+                                                <%= p.getSupplierName()%> : <%= p.getProductName()%>
+
+                                            </option>
+
+                                            <% }
+                                                }%>
+
+                                        </select>
+
+                                    </div>
+
+                                    <!-- New Product -->
+
+                                    <div id="modalNewSection"
+                                         class="hidden space-y-3">
+
+                                        <input type="text"
+                                               id="modalNewProduct"
+                                               placeholder="Product Name"
+                                               class="w-full border rounded-xl px-4 py-3">
+
+                                        <select id="modalCategory"
+                                                class="w-full border rounded-xl px-4 py-3">
+
+                                            <option value="">Category</option>
+
+                                            <option value="SNACKS">Snacks</option>
+                                            <option value="DRINKS">Drinks</option>
+                                            <option value="INSTANT_FOOD">Instant Food</option>
+                                            <option value="DAIRY">Dairy</option>
+                                            <option value="FROZEN">Frozen Food</option>
+                                            <option value="HOUSEHOLD">Household</option>
+
+                                        </select>
+
+                                    </div>
+
+                                    <div class="grid grid-cols-3 gap-3">
+
+                                        <div>
+                                            <label class="font-semibold text-sm">
+                                                Quantity
+                                            </label>
+
+                                            <input type="number"
+                                                   id="modalQty"
+                                                   value="1"
+                                                   min="1"
+                                                   class="w-full border rounded-xl px-4 py-3">
+                                        </div>
+
+                                        <div>
+                                            <label class="font-semibold text-sm">
+                                                Supplier Price
+                                            </label>
+
+                                            <input type="number"
+                                                   id="modalPrice"
+                                                   value="0.00"
+                                                   min="0"
+                                                   step="0.01"
+                                                   class="w-full border rounded-xl px-4 py-3">
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="flex justify-end gap-3 mt-6">
+
+                                    <button type="button"
+                                            onclick="closeItemModal()"
+                                            class="bg-slate-200 px-5 py-3 rounded-xl">
+
+                                        Cancel
+
+                                    </button>
+
+                                    <button type="button"
+                                            onclick="saveModalItem()"
+                                            class="bg-blue-600 text-white px-5 py-3 rounded-xl">
+
+                                        Add Item
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
                     </form>
 
                 </div>
@@ -81,91 +279,53 @@
         </main>
 
         <script>
-            function addItemRow() {
+
+            function createItemRow(
+                    productId,
+                    productName,
+                    quantity,
+                    unitPrice,
+                    isNew,
+                    category
+                    ) {
 
                 const container =
                         document.getElementById("itemsContainer");
 
-                const uniqueId =
-                        Date.now() + Math.floor(Math.random() * 1000);
+                const subtotal =
+                        parseFloat(quantity) * parseFloat(unitPrice);
 
                 const row =
-                        document.createElement("div");
+                        document.createElement("tr");
 
                 row.className =
-                        "grid grid-cols-12 gap-3 bg-slate-50 border rounded-2xl p-4 items-end";
+                        "border-t hover:bg-slate-50";
 
                 row.innerHTML =
-                        '<div class="col-span-4">' +
-                        '<label class="block text-sm font-semibold mb-2">Product</label>' +
-                        '<div class="flex gap-4 mb-2 text-sm">' +
-                        '<label>' +
-                        '<input type="radio" ' +
-                        'name="productMode' + uniqueId + '" ' +
-                        'value="existing" checked ' +
-                        'onchange="toggleProductMode(this)"> ' +
-                        'Existing' +
-                        '</label>' +
-                        '<label>' +
-                        '<input type="radio" ' +
-                        'name="productMode' + uniqueId + '" ' +
-                        'value="new" ' +
-                        'onchange="toggleProductMode(this)"> ' +
-                        'New' +
-                        '</label>' +
-                        '</div>' +
-                        '<div class="existingProductSection">' +
-                        '<select name="productId" ' +
-                        'class="productDropdown w-full border rounded-xl px-3 py-2">' +
-                        '<option value="">-- Select Product --</option>' +
-            <%
-                List<Product> products
-                        = (List<Product>) request.getAttribute("productList");
-
-                if (products != null) {
-                    for (Product p : products) {
-            %>
-
-                '<option value="<%= p.getProductId()%>">' +
-                        '<%= p.getProductName()%>' +
-                        '</option>' +
-            <%
-                    }
-                }
-            %>
-
-                '</select>' +
-                        '</div>' +
-                        '<div class="newProductSection hidden">' +
-                        '<input type="text" ' +
-                        'name="newProductName" ' +
-                        'placeholder="Enter new product name" ' +
-                        'class="productTextbox w-full border rounded-xl px-3 py-2 mb-2">' +
-                        '<select name="newProductCategory" ' +
-                        'class="w-full border rounded-xl px-3 py-2">' +
-                        '<option value="">-- Select Category --</option>' +
-                        '<option value="General">General</option>' +
-                        '<option value="Household">Household</option>' +
-                        '</select>' +
-                        '</div>' +
-                        '</div>' +
-                        '<div class="col-span-2">' +
-                        '<label class="block text-sm font-semibold mb-1">Qty</label>' +
-                        '<input type="number" name="quantity" min="1" value="1" required oninput="calculateTotal()" ' +
-                        'class="w-full border rounded-xl px-3 py-2">' +
-                        '</div>' +
-                        '<div class="col-span-2">' +
-                        '<label class="block text-sm font-semibold mb-1">Supplier Price</label>' +
-                        '<input type="number" name="unitPrice" min="0" step="0.01" value="0.00" required oninput="calculateTotal()" ' +
-                        'class="w-full border rounded-xl px-3 py-2">' +
-                        '</div>' +
-                        '<div class="col-span-2">' +
-                        '<label class="block text-sm font-semibold mb-1">Subtotal</label>' +
-                        '<input type="text" class="subtotalField w-full border rounded-xl px-3 py-2 bg-white" readonly value="RM 0.00">' +
-                        '</div>' +
-                        '<div class="col-span-1 flex items-end">' +
-                        '<button type="button" onclick="removeItemRow(this)" class="text-red-600 font-bold px-2 py-2">X</button>' +
-                        '</div>';
+                        '<td class="p-4">' +
+                        productName +
+                        '<input type="hidden" name="productId" value="' + (productId || '') + '">' +
+                        '<input type="hidden" name="newProductName" value="' + (isNew ? productName : '') + '">' +
+                        '<input type="hidden" name="newProductCategory" value="' + (category || '') + '">' +
+                        '</td>' +
+                        '<td class="p-4">' +
+                        quantity +
+                        '<input type="hidden" name="quantity" value="' + quantity + '">' +
+                        '</td>' +
+                        '<td class="p-4">' +
+                        parseFloat(unitPrice).toFixed(2) +
+                        '<input type="hidden" name="unitPrice" value="' + unitPrice + '">' +
+                        '</td>' +
+                        '<td class="p-4 font-semibold text-blue-600">' +
+                        'RM ' + subtotal.toFixed(2) +
+                        '</td>' +
+                        '<td class="p-4 text-center">' +
+                        '<button type="button" ' +
+                        'onclick="removeItemRow(this)" ' +
+                        'class="text-red-600 hover:text-red-800 font-semibold">' +
+                        'Delete' +
+                        '</button>' +
+                        '</td>';
 
                 container.appendChild(row);
 
@@ -173,70 +333,308 @@
             }
 
             function removeItemRow(button) {
-                button.closest(".grid").remove();
+
+                button.closest("tr").remove();
+
                 calculateTotal();
+
+                const rows =
+                        document.querySelectorAll("#itemsContainer tr");
+
+                if (rows.length === 0) {
+
+                    document.getElementById("supplierName").value = "";
+                }
             }
 
             function calculateTotal() {
-                const rows = document.querySelectorAll("#itemsContainer > div");
+
+                const rows =
+                        document.querySelectorAll("#itemsContainer tr");
+
                 let total = 0;
 
                 rows.forEach(function (row) {
-                    const quantity = parseFloat(row.querySelector('input[name="quantity"]').value) || 0;
-                    const unitPrice = parseFloat(row.querySelector('input[name="unitPrice"]').value) || 0;
-                    const subtotal = quantity * unitPrice;
 
-                    row.querySelector(".subtotalField").value = "RM " + subtotal.toFixed(2);
-                    total += subtotal;
+                    const quantity =
+                            parseFloat(
+                                    row.querySelector('input[name="quantity"]').value
+                                    ) || 0;
+
+                    const unitPrice =
+                            parseFloat(
+                                    row.querySelector('input[name="unitPrice"]').value
+                                    ) || 0;
+
+                    total += quantity * unitPrice;
                 });
 
-                document.getElementById("totalDisplay").innerText = "RM " + total.toFixed(2);
+                document.getElementById("totalDisplay").innerText =
+                        "RM " + total.toFixed(2);
             }
 
             function validateOrderForm() {
-                const rows = document.querySelectorAll("#itemsContainer > div");
+
+                const rows =
+                        document.querySelectorAll("#itemsContainer tr");
 
                 if (rows.length === 0) {
+
                     alert("Please add at least one order item.");
+
                     return false;
                 }
 
                 return true;
             }
 
-            function toggleProductMode(radio) {
+            function openItemModal() {
 
-                const row = radio.closest(".grid");
+                resetModal();
 
-                const existingSection =
-                        row.querySelector(".existingProductSection");
+                const supplier =
+                        document.getElementById("supplierName").value;
 
-                const newSection =
-                        row.querySelector(".newProductSection");
+                const supplierInfo =
+                        document.getElementById("modalSupplierInfo");
+
+                const supplierDisplay =
+                        document.getElementById("modalSupplierDisplay");
 
                 const dropdown =
-                        row.querySelector(".productDropdown");
+                        document.getElementById("modalProduct");
 
-                const textbox =
-                        row.querySelector(".productTextbox");
+                Array.from(dropdown.options).forEach(option => {
+
+                    if (option.value === "") {
+                        option.hidden = false;
+                        return;
+                    }
+
+                    const optionSupplier =
+                            option.getAttribute("data-supplier");
+
+                    if (supplier === "") {
+
+                        option.hidden = false;
+
+                    } else {
+
+                        option.hidden =
+                                optionSupplier !== supplier;
+                    }
+                });
+
+                if (supplier !== "") {
+
+                    supplierDisplay.innerText =
+                            supplier;
+
+                    supplierInfo.classList.remove("hidden");
+
+                } else {
+
+                    supplierInfo.classList.add("hidden");
+                }
+
+                document
+                        .getElementById("itemModal")
+                        .classList
+                        .remove("hidden");
+            }
+
+            function closeItemModal() {
+
+                document
+                        .getElementById("itemModal")
+                        .classList
+                        .add("hidden");
+            }
+
+            function toggleModalProductMode(radio) {
+
+                const existingSection =
+                        document.getElementById("modalExistingSection");
+
+                const newSection =
+                        document.getElementById("modalNewSection");
 
                 if (radio.value === "existing") {
 
                     existingSection.classList.remove("hidden");
                     newSection.classList.add("hidden");
 
-                    textbox.value = "";
-
                 } else {
 
                     existingSection.classList.add("hidden");
                     newSection.classList.remove("hidden");
-
-                    dropdown.value = "";
                 }
             }
 
-            addItemRow();
+            function handleModalProductSelection(dropdown) {
+
+                const option =
+                        dropdown.options[dropdown.selectedIndex];
+
+                const supplier =
+                        option.getAttribute("data-supplier");
+
+                if (!supplier)
+                    return;
+
+                const supplierField =
+                        document.getElementById("supplierName");
+
+                if (
+                        supplierField.value === "" ||
+                        supplierField.value === supplier
+                        ) {
+
+                    supplierField.value = supplier;
+
+                } else {
+
+                    alert(
+                            "Only one supplier is allowed per order."
+                            );
+
+                    dropdown.selectedIndex = 0;
+                }
+            }
+
+            function saveModalItem() {
+
+                const mode =
+                        document.querySelector(
+                                'input[name="modalProductMode"]:checked'
+                                ).value;
+
+                const qty =
+                        document.getElementById("modalQty").value;
+
+                const price =
+                        document.getElementById("modalPrice").value;
+
+                if (!qty || qty <= 0) {
+
+                    alert("Invalid quantity");
+
+                    return;
+                }
+
+                if (!price || price < 0) {
+
+                    alert("Invalid supplier price");
+
+                    return;
+                }
+
+                if (mode === "existing") {
+
+                    const dropdown =
+                            document.getElementById("modalProduct");
+
+                    const option =
+                            dropdown.options[dropdown.selectedIndex];
+
+                    if (!dropdown.value) {
+
+                        alert("Please select a product.");
+
+                        return;
+                    }
+
+                    const selectedSupplier =
+                            option.getAttribute("data-supplier");
+
+                    const supplierField =
+                            document.getElementById("supplierName");
+
+                    if (
+                            supplierField.value === "" ||
+                            supplierField.value === selectedSupplier
+                            ) {
+
+                        supplierField.value =
+                                selectedSupplier;
+
+                    } else {
+
+                        alert(
+                                "Only one supplier is allowed per order."
+                                );
+
+                        return;
+                    }
+
+                    createItemRow(
+                            dropdown.value,
+                            option.text,
+                            qty,
+                            price,
+                            false,
+                            null
+                            );
+
+                } else {
+
+                    const productName =
+                            document.getElementById("modalNewProduct").value.trim();
+
+                    const category =
+                            document.getElementById("modalCategory").value;
+
+                    if (productName === "") {
+
+                        alert("Enter product name.");
+
+                        return;
+                    }
+
+                    if (category === "") {
+
+                        alert("Select product category.");
+
+                        return;
+                    }
+
+                    createItemRow(
+                            "",
+                            productName,
+                            qty,
+                            price,
+                            true,
+                            category
+                            );
+                }
+
+                resetModal();
+                closeItemModal();
+            }
+
+            function resetModal() {
+
+                document.getElementById("modalProduct").selectedIndex = 0;
+
+                document.getElementById("modalNewProduct").value = "";
+
+                document.getElementById("modalCategory").selectedIndex = 0;
+
+                document.getElementById("modalQty").value = 1;
+
+                document.getElementById("modalPrice").value = "0.00";
+
+                document.querySelector(
+                        'input[name="modalProductMode"][value="existing"]'
+                        ).checked = true;
+
+                document.getElementById("modalExistingSection")
+                        .classList.remove("hidden");
+
+                document.getElementById("modalNewSection")
+                        .classList.add("hidden");
+            }
+
         </script>
 
     </body>

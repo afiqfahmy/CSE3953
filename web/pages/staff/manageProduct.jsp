@@ -48,59 +48,36 @@
                     </div>
                 </c:if>
 
-                <!-- Recent Alerts -->
-                <div class="bg-white rounded-2xl p-6 shadow-sm mb-6">
+                <div class="grid grid-cols-3 gap-5 mb-8">
 
-                    <h3 class="text-lg font-bold mb-4">
-                        Recent Alerts
-                    </h3>
+                    <div class="bg-white rounded-2xl shadow-sm p-6">
+                        <p class="text-slate-500 text-sm">
+                            Expired Products
+                        </p>
 
-                    <div class="space-y-3">
+                        <h2 class="text-3xl font-bold text-red-500 mt-2">
+                            ${expiredCount}
+                        </h2>
+                    </div>
 
-                        <c:forEach items="${expiredProducts}" var="product">
+                    <div class="bg-white rounded-2xl shadow-sm p-6">
+                        <p class="text-slate-500 text-sm">
+                            Low Stock
+                        </p>
 
-                            <div class="bg-red-50 border border-red-200 rounded-xl p-3">
+                        <h2 class="text-3xl font-bold text-yellow-500 mt-2">
+                            ${lowStockAlertCount}
+                        </h2>
+                    </div>
 
-                                ⚠ ${product.productName}
-                                expired on ${product.expiryDate}
+                    <div class="bg-white rounded-2xl shadow-sm p-6">
+                        <p class="text-slate-500 text-sm">
+                            Out Of Stock
+                        </p>
 
-                            </div>
-
-                        </c:forEach>
-
-                        <c:forEach items="${expiringSoonProducts}" var="product">
-
-                            <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-3">
-
-                                ⚠ ${product.productName}
-                                expires on ${product.expiryDate}
-
-                            </div>
-
-                        </c:forEach>
-
-                        <c:forEach items="${lowStockProducts}" var="product">
-
-                            <div class="bg-orange-50 border border-orange-200 rounded-xl p-3">
-
-                                ⚠ ${product.productName}
-                                only ${product.quantity} units remaining
-
-                            </div>
-
-                        </c:forEach>
-
-                        <c:forEach items="${outOfStockProducts}" var="product">
-
-                            <div class="bg-orange-50 border border-orange-200 rounded-xl p-3">
-
-                                ⚠ ${product.productName}
-                                is out of stock
-
-                            </div>
-
-                        </c:forEach>
-
+                        <h2 class="text-3xl font-bold text-red-600 mt-2">
+                            ${outOfStockCount}
+                        </h2>
                     </div>
 
                 </div>
@@ -112,36 +89,81 @@
 
                     <input type="hidden" name="action" value="list">
 
-                    <div class="grid grid-cols-4 gap-4">
+                    <div class="grid grid-cols-3 gap-4">
+
+                        <select name="category"
+                                onchange="this.form.submit()"
+                                class="border rounded-xl px-4 py-3">
+
+                            <option value="ALL">All Category</option>
+
+                            <option value="SNACKS"
+                                    ${category == 'SNACKS' ? 'selected' : ''}>
+                                Snacks
+                            </option>
+
+                            <option value="DRINKS"
+                                    ${category == 'DRINKS' ? 'selected' : ''}>
+                                Drinks
+                            </option>
+
+                            <option value="INSTANT_FOOD"
+                                    ${category == 'INSTANT_FOOD' ? 'selected' : ''}>
+                                Instant Food
+                            </option>
+
+                            <option value="DAIRY"
+                                    ${category == 'DAIRY' ? 'selected' : ''}>
+                                Dairy
+                            </option>
+
+                            <option value="FROZEN"
+                                    ${category == 'FROZEN' ? 'selected' : ''}>
+                                Frozen Food
+                            </option>
+
+                            <option value="HOUSEHOLD"
+                                    ${category == 'HOUSEHOLD' ? 'selected' : ''}>
+                                Household
+                            </option>
+
+                        </select>
+
+                        <select name="status"
+                                onchange="this.form.submit()"
+                                class="border rounded-xl px-4 py-3">
+
+                            <option value="ALL">
+                                All Products
+                            </option>
+
+                            <option value="ATTENTION"
+                                    ${status == 'ATTENTION' ? 'selected' : ''}>
+                                Needs Attention
+                            </option>
+
+                            <option value="EXPIRED"
+                                    ${status == 'EXPIRED' ? 'selected' : ''}>
+                                Expired
+                            </option>
+
+                            <option value="LOW_STOCK"
+                                    ${status == 'LOW_STOCK' ? 'selected' : ''}>
+                                Low Stock
+                            </option>
+
+                            <option value="OUT_OF_STOCK"
+                                    ${status == 'OUT_OF_STOCK' ? 'selected' : ''}>
+                                Out Of Stock
+                            </option>
+
+                        </select>
 
                         <input type="text"
                                name="keyword"
                                value="${keyword}"
                                placeholder="Search product..."
-                               class="border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
-
-                        <select name="category"
-                                class="border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
-
-                            <option value="ALL">All Category</option>
-                            <option value="SNACKS" ${category == 'SNACKS' ? 'selected' : ''}>Snacks</option>
-                            <option value="DRINKS" ${category == 'DRINKS' ? 'selected' : ''}>Drinks</option>
-                            <option value="INSTANT_FOOD" ${category == 'INSTANT_FOOD' ? 'selected' : ''}>Instant Food</option>
-                            <option value="DAIRY" ${category == 'DAIRY' ? 'selected' : ''}>Dairy</option>
-                            <option value="FROZEN" ${category == 'FROZEN' ? 'selected' : ''}>Frozen Food</option>
-                            <option value="HOUSEHOLD" ${category == 'HOUSEHOLD' ? 'selected' : ''}>Household Items</option>
-
-                        </select>
-
-                        <button type="submit"
-                                class="bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold">
-                            Search
-                        </button>
-
-                        <a href="${pageContext.request.contextPath}/ProductController?action=list"
-                           class="bg-slate-200 hover:bg-slate-300 rounded-xl text-center py-3 font-semibold text-slate-700">
-                            Reset
-                        </a>
+                               class="border rounded-xl px-4 py-3">
 
                     </div>
 

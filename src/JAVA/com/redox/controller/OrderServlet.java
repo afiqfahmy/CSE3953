@@ -65,10 +65,7 @@ public class OrderServlet extends HttpServlet {
                     break;
 
                 case "delete":
-                    response.sendRedirect(
-                            request.getContextPath()
-                            + "/OrderServlet?action=list&error=unauthorized"
-                    );
+                    deleteOrder(request, response);
                     break;
 
                 case "report":
@@ -210,12 +207,17 @@ public class OrderServlet extends HttpServlet {
         int completedCount = 0;
 
         for (Order order : orders) {
+
             totalAmount += order.getTotalAmount();
 
-            if ("Pending".equalsIgnoreCase(order.getStatus())) {
+            if ("PENDING_PAYMENT".equalsIgnoreCase(order.getStatus())) {
+
                 pendingCount++;
-            } else if ("Completed".equalsIgnoreCase(order.getStatus())) {
+
+            } else if ("PAID".equalsIgnoreCase(order.getStatus())) {
+
                 completedCount++;
+
             }
         }
 
@@ -320,6 +322,9 @@ public class OrderServlet extends HttpServlet {
         String[] newProductNames
                 = request.getParameterValues("newProductName");
 
+        String[] newProductCategories
+                = request.getParameterValues("newProductCategory");
+
         List<OrderItem> orderItems = new ArrayList<>();
 
         double totalAmount = 0;
@@ -388,8 +393,19 @@ public class OrderServlet extends HttpServlet {
                     Product newProduct = new Product();
 
                     newProduct.setProductName(itemName);
-                    newProduct.setCategory("General");
-                    newProduct.setUnitPrice(unitPrice);
+                    String category
+                            = newProductCategories[i];
+
+                    if (category == null
+                            || category.trim().isEmpty()) {
+
+                        throw new IllegalArgumentException(
+                                "Please select a category for new products."
+                        );
+                    }
+
+                    newProduct.setCategory(category);
+                    newProduct.setUnitPrice(0);
                     newProduct.setQuantity(0);
                     newProduct.setThreshold(10);
                     newProduct.setExpiryDate(null);

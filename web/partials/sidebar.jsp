@@ -82,14 +82,42 @@
             </span>
 
             <span class="text-sm">
-                Sales
+                Cashier
             </span>
 
         </a>
 
         <% }%>
 
-        <!-- STAFF + MANAGER -->
+        <!-- MANAGER ONLY -->
+
+        <% if (roleId == 2) {%>
+
+        <a class="<%= "report".equals(active) ? activeClass : inactiveClass%>"
+           href="${pageContext.request.contextPath}/OrderServlet?action=report">
+
+            <span class="material-symbols-outlined text-[21px]">
+                payments
+            </span>
+
+            <span class="text-sm">
+                Supplier Payments
+            </span>
+
+        </a>
+
+        <a class="<%= "dailyreport".equals(active) ? activeClass : inactiveClass%>"
+           href="${pageContext.request.contextPath}/pages/sales/dailyReport.jsp">
+
+            <span class="material-symbols-outlined text-[21px]">
+                analytics
+            </span>
+
+            <span class="text-sm">
+                Sales Dashboard
+            </span>
+
+        </a>
 
         <a class="<%= "history".equals(active) ? activeClass : inactiveClass%>"
            href="${pageContext.request.contextPath}/pages/sales/history.jsp">
@@ -100,36 +128,6 @@
 
             <span class="text-sm">
                 Transaction History
-            </span>
-
-        </a>
-
-        <!-- MANAGER ONLY -->
-
-        <% if (roleId == 2) {%>
-
-        <a class="<%= "report".equals(active) ? activeClass : inactiveClass%>"
-           href="${pageContext.request.contextPath}/OrderServlet?action=report">
-
-            <span class="material-symbols-outlined text-[21px]">
-                bar_chart
-            </span>
-
-            <span class="text-sm">
-                Order Report
-            </span>
-
-        </a>
-
-        <a class="<%= "dailyreport".equals(active) ? activeClass : inactiveClass%>"
-           href="${pageContext.request.contextPath}/pages/sales/dailyReport.jsp">
-
-            <span class="material-symbols-outlined text-[21px]">
-                monitoring
-            </span>
-
-            <span class="text-sm">
-                Daily Report
             </span>
 
         </a>

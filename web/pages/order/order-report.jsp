@@ -21,8 +21,13 @@
 
                 <div class="flex justify-between items-center mb-8">
                     <div>
-                        <h1 class="text-3xl font-bold text-slate-800">Order Report</h1>
-                        <p class="text-slate-500">Summary of supplier order records</p>
+                        <h1 class="text-3xl font-bold text-slate-800">
+                            Supplier Payments
+                        </h1>
+
+                        <p class="text-slate-500">
+                            Review supplier orders and payment status
+                        </p>
                     </div>
                 </div>
 
@@ -88,39 +93,53 @@
                             %>
 
                             <tr class="border-t hover:bg-slate-50">
-                                <td class="p-4 font-semibold"><%= index++%></td>
-                                <td class="p-4"><%= order.getSupplierName()%></td>
-                                <td class="p-4">RM <%= String.format("%.2f", order.getTotalAmount())%></td>
-                                <td class="p-4">
-                                    <%= order.getStatus()%>
+
+                                <td class="p-4 font-semibold">
+                                    <%= index++%>
                                 </td>
 
                                 <td class="p-4">
+                                    <%= order.getSupplierName()%>
+                                </td>
 
-                                    <%
-                                        if ("PENDING_PAYMENT".equalsIgnoreCase(order.getStatus())) {
-                                    %>
+                                <td class="p-4">
+                                    RM <%= String.format("%.2f", order.getTotalAmount())%>
+                                </td>
 
-                                    <a href="<%=request.getContextPath()%>/ToyyibPayServlet?id=<%=order.getOrderId()%>"
-                                       class="inline-block bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                                <!-- STATUS -->
+                                <td class="p-4">
 
-                                        Pay Supplier
+                                    <% if ("PENDING_PAYMENT".equalsIgnoreCase(order.getStatus())) { %>
+
+                                    <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                        PENDING
+                                    </span>
+
+                                    <% } else { %>
+                                    <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                        PAID
+                                    </span>
+
+                                    <% }%>
+
+                                </td>
+
+                                <!-- ACTION -->
+                                <td class="p-4">
+
+                                    <a href="<%=request.getContextPath()%>/OrderServlet?action=details&id=<%=order.getOrderId()%>"
+                                       class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 font-semibold">
+
+                                        <span class="material-symbols-outlined text-[18px]">
+                                            visibility
+                                        </span>
+
+                                        View Order
 
                                     </a>
 
-                                    <%
-                                    } else {
-                                    %>
-
-                                    <span class="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
-                                        Completed
-                                    </span>
-
-                                    <%
-                                        }
-                                    %>
-
                                 </td>
+
                             </tr>
 
                             <%

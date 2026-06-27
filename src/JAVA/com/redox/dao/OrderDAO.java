@@ -220,13 +220,20 @@ public class OrderDAO {
     }
 
     private Order mapOrder(ResultSet rs) throws SQLException {
+
+        String status = rs.getString("status");
+
+        if ("COMPLETED".equalsIgnoreCase(status)) {
+            status = "PAID";
+        }
+
         return new Order(
                 rs.getInt("order_id"),
                 rs.getString("supplier_name"),
                 rs.getString("items"),
                 rs.getDouble("total_amount"),
                 rs.getString("order_date"),
-                rs.getString("status")
+                status
         );
     }
 
@@ -248,7 +255,7 @@ public class OrderDAO {
 
             // Update order status
             String sql = "UPDATE orders "
-                    + "SET status = 'COMPLETED' "
+                    + "SET status = 'PAID' "
                     + "WHERE order_id = ?";
 
             PreparedStatement ps = conn.prepareStatement(sql);
@@ -280,7 +287,7 @@ public class OrderDAO {
 
                 productDAO.updateStatus(
                         item.getProductId(),
-                        "IN_STOCK"
+                        "In Stock"
                 );
             }
 

@@ -1,6 +1,10 @@
 package com.redox.controller;
 
 import com.redox.dao.OrderDAO;
+import com.redox.dao.ProductDAO;
+import com.redox.model.Order;
+import com.redox.model.OrderItem;
+
 import java.io.IOException;
 import javax.servlet.http.*;
 
@@ -13,17 +17,15 @@ public class ToyyibPayReturnServlet extends HttpServlet {
 
         try {
 
-            int orderId
-                    = Integer.parseInt(
-                            request.getParameter("orderId"));
+            int orderId = Integer.parseInt(
+                    request.getParameter("orderId"));
 
             String statusId
                     = request.getParameter("status_id");
 
             if ("1".equals(statusId)) {
 
-                OrderDAO dao
-                        = new OrderDAO();
+                OrderDAO dao = new OrderDAO();
 
                 dao.markAsPaid(orderId);
 

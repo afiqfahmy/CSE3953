@@ -11,6 +11,14 @@
     double cash = dao.getTodayCashSales();
     double qr = dao.getTodayQrSales();
 
+    double averageSale = transactions > 0
+            ? revenue / transactions
+            : 0;
+
+    String topMethod = cash > qr
+            ? "Cash"
+            : "QR";
+
     List<Sale> recentSales = dao.getAllSalesHistory();
 %>
 
@@ -26,11 +34,11 @@
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
               rel="stylesheet">
 
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     </head>
 
     <body class="bg-slate-100">
-
-        ```
         <jsp:include page="/partials/sidebar.jsp">
             <jsp:param name="active" value="dailyreport"/>
         </jsp:include>
@@ -38,13 +46,12 @@
         <main class="pl-60 p-8">
             <div class="max-w-7xl mx-auto">
                 <h1 class="text-3xl font-bold text-slate-800">
-                    Sales Summary Report
+                    Sales Dashboard
                 </h1>
 
                 <p class="text-slate-500">
-                    Overview of overall sales performance
+                    Revenue and transaction analytics
                 </p>
-
                 <!-- Summary Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
 
@@ -70,22 +77,33 @@
 
                     <div class="bg-white p-6 rounded-2xl shadow-sm">
                         <p class="text-slate-500 text-sm">
-                            Cash Sales
+                            Average Sale
                         </p>
 
                         <h2 class="text-3xl font-black text-blue-600 mt-2">
-                            RM <%= String.format("%.2f", cash)%>
+                            RM <%= String.format("%.2f", averageSale)%>
                         </h2>
                     </div>
 
                     <div class="bg-white p-6 rounded-2xl shadow-sm">
                         <p class="text-slate-500 text-sm">
-                            QR Sales
+                            Top Payment Method
                         </p>
 
                         <h2 class="text-3xl font-black text-purple-600 mt-2">
-                            RM <%= String.format("%.2f", qr)%>
+                            <%= topMethod%>
                         </h2>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm p-6 mt-8">
+
+                    <h2 class="text-xl font-bold text-slate-800 mb-4">
+                        Revenue Distribution
+                    </h2>
+
+                    <div style="height:350px;">
+                        <canvas id="salesChart"></canvas>
                     </div>
 
                 </div>
@@ -152,6 +170,29 @@
             </div>
 
         </main>
+
+        <script>
+
+            const ctx = document.getElementById('salesChart');
+            new Chart(document.getElementById("salesChart"), {
+
+                type: 'doughnut',
+
+                data: {
+                    labels: ['Cash', 'QR'],
+                    datasets: [{
+                            data: [<%= cash%>, <%= qr%>]
+                        }]
+                },
+
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+
+            }); 
+
+        </script>
     </body>
 
 </html>

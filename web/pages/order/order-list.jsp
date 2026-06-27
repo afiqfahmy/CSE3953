@@ -58,10 +58,20 @@
                                     for (Order order : orders) {
 
                                         String status = order.getStatus();
-                                        String badge = "bg-yellow-100 text-yellow-700";
 
-                                        if ("Completed".equalsIgnoreCase(status)) {
+                                        String displayStatus;
+                                        String badge;
+
+                                        if ("PENDING_PAYMENT".equalsIgnoreCase(status)) {
+
+                                            displayStatus = "PENDING";
+                                            badge = "bg-yellow-100 text-yellow-700";
+
+                                        } else {
+
+                                            displayStatus = "PAID";
                                             badge = "bg-green-100 text-green-700";
+
                                         }
                             %>
 
@@ -82,7 +92,7 @@
 
                                 <td class="p-4">
                                     <span class="<%= badge%> px-3 py-1 rounded-full text-sm font-semibold">
-                                        <%= status%>
+                                        <%= displayStatus%>
                                     </span>
                                 </td>
 

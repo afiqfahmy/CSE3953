@@ -121,6 +121,7 @@ public class ProductController extends HttpServlet {
 
         String keyword = request.getParameter("keyword");
         String category = request.getParameter("category");
+        String status = request.getParameter("status");
 
         List<Product> productList;
 
@@ -130,16 +131,26 @@ public class ProductController extends HttpServlet {
                 && !category.trim().isEmpty()
                 && !"ALL".equalsIgnoreCase(category);
 
-        if (hasKeyword || hasCategory) {
-            productList = productDAO.searchProducts(keyword, category);
+        boolean hasStatus = status != null
+                && !status.trim().isEmpty()
+                && !"ALL".equalsIgnoreCase(status);
+
+        if (hasKeyword || hasCategory || hasStatus) {
+
+            productList = productDAO.searchProducts(
+                    keyword,
+                    category,
+                    status
+            );
+
         } else {
+
             productList = productDAO.selectAllProducts();
         }
 
         int totalProducts = productList.size();
         int lowStockCount = 0;
         int totalQuantity = 0;
-        int expiringCount = 0;
 
         for (Product product : productList) {
 
@@ -148,18 +159,12 @@ public class ProductController extends HttpServlet {
             if (product.isLowStock()) {
                 lowStockCount++;
             }
-
-            if ("Expiring Soon".equals(product.getExpiryStatus())
-                    || "Expired".equals(product.getExpiryStatus())) {
-                expiringCount++;
-            }
         }
 
         request.setAttribute("productList", productList);
         request.setAttribute("totalProducts", totalProducts);
         request.setAttribute("lowStockCount", lowStockCount);
         request.setAttribute("totalQuantity", totalQuantity);
-        request.setAttribute("expiringCount", expiringCount);
         request.setAttribute(
                 "expiredCount",
                 productDAO.getExpiredCount());
@@ -194,6 +199,7 @@ public class ProductController extends HttpServlet {
 
         request.setAttribute("keyword", keyword);
         request.setAttribute("category", category);
+        request.setAttribute("status", status);
 
         RequestDispatcher dispatcher
                 = request.getRequestDispatcher("/pages/staff/manageProduct.jsp");

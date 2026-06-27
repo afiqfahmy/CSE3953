@@ -82,37 +82,104 @@ public class ProductDAO {
         return product;
     }
 
-    public List<Product> searchProducts(String keyword, String category) throws SQLException {
+    public List<Product> searchProducts(
+            String keyword,
+            String category,
+            String status)
+            throws SQLException {
+
         List<Product> products = new ArrayList<>();
 
-        StringBuilder sql = new StringBuilder("SELECT * FROM products WHERE 1=1");
+        StringBuilder sql
+                = new StringBuilder(
+                        "SELECT * FROM products WHERE 1=1"
+                );
 
         if (keyword != null && !keyword.trim().isEmpty()) {
             sql.append(" AND product_name LIKE ?");
         }
 
-        if (category != null && !category.trim().isEmpty() && !"ALL".equalsIgnoreCase(category)) {
+        if (category != null
+                && !category.trim().isEmpty()
+                && !"ALL".equalsIgnoreCase(category)) {
+
             sql.append(" AND category = ?");
+        }
+
+        if ("PENDING_STOCK".equals(status)) {
+
+            sql.append(" AND status = 'PENDING_STOCK'");
+
+        } else if ("ATTENTION".equals(status)) {
+
+            sql.append(
+                    " AND ("
+                    + " quantity = 0 "
+                    + " OR quantity <= threshold "
+                    + " OR expiry_date < CURDATE() "
+                    + ")"
+            );
+
+        } else if ("ATTENTION".equals(status)) {
+
+            sql.append(
+                    " AND ("
+                    + " quantity = 0 "
+                    + " OR quantity <= threshold "
+                    + " OR expiry_date < CURDATE() "
+                    + ")"
+            );
+
+        } else if ("OUT_OF_STOCK".equals(status)) {
+
+            sql.append(" AND quantity = 0");
+
+        } else if ("LOW_STOCK".equals(status)) {
+
+            sql.append(" AND quantity > 0");
+            sql.append(" AND quantity <= threshold");
+
+        } else if ("EXPIRED".equals(status)) {
+
+            sql.append(" AND expiry_date < CURDATE()");
+
+        } else if ("EXPIRING_SOON".equals(status)) {
+
+            sql.append(
+                    " AND expiry_date BETWEEN CURDATE() "
+                    + "AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)"
+            );
         }
 
         sql.append(" ORDER BY product_name ASC");
 
-        try (Connection connection = DBConnection.getConnection(); PreparedStatement statement = connection.prepareStatement(sql.toString())) {
+        try (
+                Connection connection = DBConnection.getConnection(); PreparedStatement statement
+                = connection.prepareStatement(sql.toString())) {
 
             int index = 1;
 
             if (keyword != null && !keyword.trim().isEmpty()) {
-                statement.setString(index++, "%" + keyword.trim() + "%");
+                statement.setString(
+                        index++,
+                        "%" + keyword.trim() + "%"
+                );
             }
 
-            if (category != null && !category.trim().isEmpty() && !"ALL".equalsIgnoreCase(category)) {
-                statement.setString(index++, category.trim());
+            if (category != null
+                    && !category.trim().isEmpty()
+                    && !"ALL".equalsIgnoreCase(category)) {
+
+                statement.setString(
+                        index++,
+                        category.trim()
+                );
             }
 
-            try (ResultSet rs = statement.executeQuery()) {
-                while (rs.next()) {
-                    products.add(mapProduct(rs));
-                }
+            ResultSet rs = statement.executeQuery();
+
+            while (rs.next()) {
+                products.add(mapProduct(rs));
             }
         }
 
@@ -221,6 +288,26 @@ public class ProductDAO {
         }
     }
 
+    public boolean decreaseStockByProductId(int productId, int quantity)
+            throws SQLException {
+
+        String sql
+                = "UPDATE products "
+                + "SET quantity = quantity - ? "
+                + "WHERE product_id = ? "
+                + "AND quantity >= ?";
+
+        try (
+                Connection connection = DBConnection.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setInt(1, quantity);
+            statement.setInt(2, productId);
+            statement.setInt(3, quantity);
+
+            return statement.executeUpdate() > 0;
+        }
+    }
+
     public List<OrderedItemSource> getCompletedOrderItemsForProduct() throws SQLException {
 
         List<OrderedItemSource> items = new ArrayList<>();
@@ -229,7 +316,7 @@ public class ProductDAO {
                 = "SELECT oi.order_item_id, oi.item_name, o.supplier_name, oi.quantity, oi.unit_price "
                 + "FROM order_items oi "
                 + "JOIN orders o ON oi.order_id = o.order_id "
-                + "WHERE o.status = 'Completed' "
+                + "WHERE o.status = 'PAID' "
                 + "AND NOT EXISTS ( "
                 + "    SELECT 1 "
                 + "    FROM products p "

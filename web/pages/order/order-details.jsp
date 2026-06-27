@@ -1,9 +1,11 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <%@ page import="com.redox.model.Order" %>
 <%@ page import="com.redox.model.OrderItem" %>
+<%@ page import="com.redox.model.User" %>
 
 <%
     Order order = (Order) request.getAttribute("order");
+    User user = (User) session.getAttribute("user");
 %>
 
 <!DOCTYPE html>
@@ -31,49 +33,96 @@
 
                 <div class="bg-white rounded-2xl shadow-sm mt-6 overflow-hidden">
 
-                    <div class="bg-blue-600 text-white p-8">
-                        <p class="text-blue-100 text-sm">Order ID</p>
-                        <h1 class="text-3xl font-bold">#<%= order.getOrderId()%></h1>
-                        <p class="text-blue-100 mt-2"><%= order.getSupplierName()%></p>
+                    <div class="p-6 border-b">
+
+                        <div class="p-6">
+
+                            <div class="grid grid-cols-2 gap-6">
+
+                                <div class="bg-slate-50 rounded-2xl p-5">
+
+                                    <h3 class="font-bold text-slate-800 mb-4">
+                                        Supplier Information
+                                    </h3>
+
+                                    <div class="space-y-3">
+
+                                        <p>
+                                            <span class="text-slate-500">Supplier:</span>
+                                            <span class="font-semibold ml-2">
+                                                <%= order.getSupplierName()%>
+                                            </span>
+                                        </p>
+
+                                        <p>
+                                            <span class="text-slate-500">Order Date:</span>
+                                            <span class="font-semibold ml-2">
+                                                <%= order.getOrderDate()%>
+                                            </span>
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="bg-slate-50 rounded-2xl p-5">
+
+                                    <h3 class="font-bold text-slate-800 mb-4">
+                                        Order Summary
+                                    </h3>
+
+                                    <div class="bg-slate-50 rounded-2xl p-5">
+
+                                        <p class="text-slate-500 text-sm mb-3">
+                                            Order Summary
+                                        </p>
+
+                                        <% if (user.getRoleId() == 2) { %>
+
+                                        <% if ("PENDING_PAYMENT".equalsIgnoreCase(order.getStatus())) { %>
+
+                                        <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                            PENDING
+                                        </span>
+
+                                        <% } else { %>
+
+                                        <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                            PAID
+                                        </span>
+
+                                        <% } %>
+
+                                        <% }%>
+
+                                        <h3 class="text-3xl font-bold text-green-600 mt-3">
+                                            RM <%= String.format("%.2f", order.getTotalAmount())%>
+                                        </h3>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="flex justify-between items-center">
+
+                            <div>
+                                <h1 class="text-2xl font-bold text-slate-800">
+                                    Order #<%= order.getOrderId()%>
+                                </h1>
+
+                                <p class="text-slate-500">
+                                    <%= order.getSupplierName()%>
+                                </p>
+                            </div>
+
+                        </div>
+
                     </div>
 
-                    <div class="p-8 grid grid-cols-2 gap-6">
-
-                        <div class="bg-slate-50 rounded-2xl p-5">
-                            <p class="text-slate-500 text-sm">Supplier Name</p>
-                            <h3 class="text-xl font-bold"><%= order.getSupplierName()%></h3>
-                        </div>
-
-                        <div class="bg-slate-50 rounded-2xl p-5">
-                            <p class="text-slate-500 text-sm">Order Date</p>
-                            <h3 class="text-xl font-bold"><%= order.getOrderDate()%></h3>
-                        </div>
-
-                        <div class="bg-slate-50 rounded-2xl p-5">
-                            <p class="text-slate-500 text-sm">Status</p>
-
-                            <%
-                                String status = order.getStatus();
-                                String badge = "bg-yellow-100 text-yellow-700";
-
-                                if ("Completed".equalsIgnoreCase(status)) {
-                                    badge = "bg-green-100 text-green-700";
-                                }
-                            %>
-
-                            <span class="<%= badge%> px-3 py-1 rounded-full text-sm font-semibold">
-                                <%= status%>
-                            </span>
-                        </div>
-
-                        <div class="bg-slate-50 rounded-2xl p-5">
-                            <p class="text-slate-500 text-sm">Total Amount</p>
-                            <h3 class="text-xl font-bold text-green-600">
-                                RM <%= String.format("%.2f", order.getTotalAmount())%>
-                            </h3>
-                        </div>
-
-                    </div>
 
                     <div class="px-8 pb-8">
                         <h2 class="text-xl font-bold text-slate-800 mb-4">Ordered Items</h2>
@@ -124,6 +173,53 @@
                             </table>
                         </div>
                     </div>
+
+                    <div class="px-8 pb-8 border-t pt-6 flex justify-between items-center">
+
+                        <div>
+                            <p class="text-sm text-slate-500">
+                                Total Order Value
+                            </p>
+
+                            <p class="text-3xl font-bold text-green-600">
+                                RM <%= String.format("%.2f", order.getTotalAmount())%>
+                            </p>
+                        </div>
+
+                        <% if (user.getRoleId() == 2) { %>
+
+                        <% if ("PENDING_PAYMENT".equalsIgnoreCase(order.getStatus())) {%>
+
+                        <div class="flex gap-3">
+
+                            <a href="<%=request.getContextPath()%>/OrderServlet?action=delete&id=<%=order.getOrderId()%>"
+                               onclick="return confirm('Delete this supplier order?');"
+                               class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-semibold">
+
+                                Delete Order
+
+                            </a>
+
+                            <a href="<%=request.getContextPath()%>/ToyyibPayServlet?id=<%=order.getOrderId()%>"
+                               class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-semibold">
+
+                                Pay Supplier
+
+                            </a>
+
+                        </div>
+
+                        <% } else { %>
+
+                        <span class="bg-green-100 text-green-700 px-5 py-3 rounded-xl font-semibold">
+                            ✓ Payment Completed
+                        </span>
+
+                        <% } %>
+
+                        <% }%>
+                    </div>
+
                 </div>
 
             </div>

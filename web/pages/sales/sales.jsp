@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <%@ page import="java.sql.*" %>
 <%@ page import="com.redox.util.DBConnection" %>
+<%@ page import="com.redox.dao.SalesDAO" %>
 
 <!DOCTYPE html>
 <html>
@@ -23,7 +24,44 @@
             <div class="w-2/3 p-8 overflow-y-auto">
 
                 <div class="mb-8">
-                    <h1 class="text-3xl font-bold text-slate-800">Sales Menu</h1>
+                    <h1 class="text-3xl font-bold">
+                        Point of Sale
+                    </h1>
+                    <p class="text-slate-500">
+                        Process customer purchases and payments
+                    </p>
+
+
+                    <%
+                        SalesDAO salesDAO = new SalesDAO();
+
+                        double todayRevenue = salesDAO.getTodayRevenue();
+                        int todayTransactions = salesDAO.getTodayTransactionCount();
+                    %>
+
+                    <div class="grid grid-cols-2 gap-4 mt-5 mb-6">
+
+                        <div class="bg-white rounded-2xl p-4 shadow-sm">
+                            <p class="text-slate-500 text-sm">
+                                Today's Revenue
+                            </p>
+
+                            <h2 class="text-2xl font-bold text-green-600">
+                                RM <%= String.format("%.2f", todayRevenue)%>
+                            </h2>
+                        </div>
+
+                        <div class="bg-white rounded-2xl p-4 shadow-sm">
+                            <p class="text-slate-500 text-sm">
+                                Transactions
+                            </p>
+
+                            <h2 class="text-2xl font-bold text-blue-600">
+                                <%= todayTransactions%>
+                            </h2>
+                        </div>
+
+                    </div>
 
                     <div class="mt-4 flex gap-4">
 
@@ -84,9 +122,21 @@
                                 <span class="material-symbols-outlined">shopping_bag</span>
                             </div>
 
-                            <span class="text-xs bg-slate-100 px-2 py-1 rounded-lg font-semibold text-slate-500">
-                                Stock: <%= quantity%>
-                            </span>
+                            <div class="flex flex-col items-end gap-1">
+
+                                <span class="text-xs bg-slate-100 px-2 py-1 rounded-lg font-semibold text-slate-500">
+                                    Stock: <%= quantity%>
+                                </span>
+
+                                <% if (quantity <= 5) { %>
+
+                                <span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">
+                                    Low Stock
+                                </span>
+
+                                <% }%>
+
+                            </div>
                         </div>
 
                         <h3 class="font-bold text-slate-800 text-lg">
@@ -115,9 +165,18 @@
             <div class="w-1/3 bg-white border-l border-slate-200 flex flex-col">
 
                 <div class="p-6 border-b">
-                    <h2 class="font-bold text-xl text-slate-800">
-                        Current Order
-                    </h2>
+                    <div class="flex justify-between items-center">
+
+                        <h2 class="font-bold text-xl text-slate-800">
+                            Shopping Cart
+                        </h2>
+
+                        <span id="itemCount"
+                              class="bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full">
+                            0 Items
+                        </span>
+
+                    </div>
                 </div>
 
                 <div id="cartItems"
@@ -227,9 +286,11 @@
                 container.innerHTML = "";
 
                 let grandTotal = 0;
+                let totalItems = 0;
 
                 cart.forEach(function (item, index) {
                     grandTotal += item.total;
+                    totalItems += item.quantity;
 
                     container.innerHTML +=
                             '<div class="bg-slate-50 rounded-xl p-4 border">' +
@@ -258,6 +319,8 @@
                 document.getElementById("totalDisplay").innerText = "RM" + grandTotal.toFixed(2);
                 document.getElementById("cartData").value = JSON.stringify(cart);
                 document.getElementById("grandTotal").value = grandTotal.toFixed(2);
+                document.getElementById("itemCount").innerText =
+                        totalItems + " Items";
             }
 
             function changeQty(index, amount) {
